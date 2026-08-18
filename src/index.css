@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Aviation Academy Design System - Professional aviation-inspired colors and gradients */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  :root {
+    /* Base colors inspired by aviation and sky */
+    --background: 0 0% 100%;
+    --foreground: 220 13% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+
+    /* Professional Aviation Academy Color Palette - Updated to match new logo */
+    --primary: 220 53% 15%; /* Deep navy blue matching logo #1B2951 */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 220 53% 25%; /* Lighter navy for effects */
+    --accent-gold: 45 100% 65%; /* Gold accents from logo #D4AF37 */
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 53% 15%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 53% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 53% 15%;
+
+    --radius: 0.75rem;
+
+    /* Aviation-specific design tokens - Updated to match professional logo */
+    --sky-blue: 210 40% 98%;
+    --navy-blue: 220 53% 15%; /* Deep navy matching logo */
+    --cloud-white: 0 0% 98%;
+    --steel-gray: 220 9% 46%;
+    --aviation-gold: 45 100% 65%; /* Gold from logo wings and accents */
+    
+    /* Gradients - Professional and subtle - Updated to match new logo theme */
+    --gradient-sky: linear-gradient(135deg, hsl(210, 40%, 98%) 0%, hsl(220, 14%, 96%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220, 53%, 15%) 0%, hsl(220, 53%, 25%) 50%, hsl(210, 40%, 98%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(220, 14%, 98%) 100%);
+    --gradient-gold: linear-gradient(45deg, hsl(45, 100%, 65%) 0%, hsl(45, 100%, 75%) 100%);
+    
+    /* Shadows with professional subtlety - Updated to match new logo theme */
+    --shadow-elegant: 0 10px 30px -10px hsl(220, 53%, 15%, 0.15);
+    --shadow-glow: 0 0 40px hsl(220, 53%, 15%, 0.08);
+    --shadow-card: 0 4px 20px -4px hsl(220, 53%, 15%, 0.1);
+    --shadow-gold: 0 0 20px hsl(45, 100%, 65%, 0.3);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%; /* Light version for dark mode */
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Hero button variants */
+  .btn-hero {
+    @apply bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-8 py-4 rounded-xl font-semibold text-lg hover:scale-[1.02] active:scale-[0.98];
+    box-shadow: var(--shadow-elegant);
+    transition: var(--transition-smooth);
+  }
+  
+  .btn-hero:hover {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .btn-secondary {
+    @apply bg-white/10 backdrop-blur-sm border border-white/20 text-primary-foreground px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/20;
+    transition: var(--transition-smooth);
+  }
+  
+  /* Section styling */
+  .section-padding {
+    @apply py-20 px-6 lg:px-8;
+  }
+  
+  /* Card hover effects - Enhanced */
+  .program-card {
+    @apply bg-card rounded-2xl p-8 hover:-translate-y-3 hover:scale-[1.02] border border-border/50 cursor-pointer;
+    box-shadow: var(--shadow-card);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .program-card:hover {
+    box-shadow: 0 20px 40px -10px hsl(220, 53%, 15%, 0.25);
+    border-color: hsl(45, 100%, 65%, 0.3);
+  }
+  
+  .program-card:hover .program-card-content {
+    transform: translateY(-4px);
+  }
+  
+  /* Testimonial cards */
+  .testimonial-card {
+    @apply bg-gradient-to-br from-white to-accent/20 rounded-2xl p-8;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+  
+  .testimonial-card:hover {
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  /* Text gradients */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-gold {
+    background: var(--gradient-gold);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* Animated underlines */
+  .animated-underline {
+    @apply relative after:content-[''] after:absolute after:w-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full;
+  }
+
+  /* Pulse animation for CTAs */
+  .pulse-glow {
+    animation: pulseGlow 2s infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(220, 53%, 15%, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(220, 53%, 15%, 0.6), 0 0 40px hsl(45, 100%, 65%, 0.2);
+    }
+  }
+
+  /* Floating animation */
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  /* Stagger animation for cards */
+  .stagger-animation {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: staggerIn 0.8s ease-out forwards;
+  }
+
+  .stagger-animation:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-animation:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-animation:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-animation:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-animation:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-animation:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes staggerIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer utilities {
+  /* Custom shadow utilities */
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+}
+
+header+section{
+  padding-top: 0px !important;
+}

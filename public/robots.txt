@@ -1,0 +1,38 @@
+# Robots.txt for Indo Air Aviation Academy
+# Leading Aviation Training Institute in Indore, India
+# Updated: 2025-08-24
+
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: *
+Allow: /
+Crawl-delay: 2
+
+# Sitemap location
+Sitemap: https://indoaviationacademy.com/sitemap.xml
+
+# Disallow crawling of certain file types if any (none for this site)
+# Allow indexing of all images and media
+User-agent: *
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.svg$
+Allow: /*.css$
+Allow: /*.js$

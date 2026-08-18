@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indo Air Aviation Academy</title>
+    <script>
+        // Redirect any path to the main app for client-side routing with custom domain
+        const currentPath = window.location.pathname;
+        
+        // For custom domain, redirect to root with the current path as a hash
+        if (currentPath !== '/') {
+            const redirectPath = '/#' + currentPath;
+            window.location.replace(redirectPath);
+        }
+    </script>
+</head>
+<body>
+    <p>Redirecting...</p>
+</body>
+</html>
