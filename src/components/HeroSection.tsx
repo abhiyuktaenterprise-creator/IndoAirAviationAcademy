@@ -32,7 +32,7 @@ const HeroSection = () => {
         </p>
         
         <div className="md:text-lg text-base text-white/90 md:mb-8 mb-4 drop-shadow-md">
-          📍 Located at Sayaji Plaza, Indore | 📞 +91-6394311851
+          📍 Located at Sayaji Plaza, Indore | 📞 +91-8233787629
         </div>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">

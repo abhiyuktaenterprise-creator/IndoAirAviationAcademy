@@ -63,7 +63,7 @@ The website is automatically deployed to GitHub Pages whenever changes are pushe
 
 ## 📞 Contact Us
 
-- **Phone**: +91 6394311851
+- **Phone**: +91 8233787629
 - **Email**: info@indoair.academy
 - **Location**: India
 
