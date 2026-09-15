@@ -6,20 +6,19 @@ const AboutSection = () => {
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           <div>
+            <div className="inline-flex items-center space-x-2 bg-primary/10 text-primary px-3.5 py-1 rounded-full text-xs font-bold mb-3">
+              <span>🧭 Path & Training Consultants</span>
+            </div>
             <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 md:mb-6 text-foreground">
-              Leading Aviation Excellence Since{" "}
+              Aviation Career Consultancy & Training Since{" "}
               <span className="text-gradient">2008</span>
             </h2>
             <p className="text-base md:text-lg text-muted-foreground mb-4 md:mb-6 leading-relaxed">
-              <strong>Indo Air Aviation Academy</strong> stands as a beacon of excellence in aviation education in <strong>Indore, Madhya Pradesh</strong>, 
-              committed to shaping the future of the aviation industry. Our state-of-the-art 
-              facilities at Sayaji Plaza and industry-expert instructors provide comprehensive training that 
-              meets international standards.
+              <strong>Indo Air Aviation Academy</strong> is Central India's leading <strong>Aviation Consultancy and Training Institute</strong> in <strong>Indore, Madhya Pradesh</strong>. 
+              We don't just teach courses — we guide students with a clear <strong>career pathway</strong>, personalized counseling, DGCA exam mentorship, and intensive practical training from day one.
             </p>
             <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8 leading-relaxed">
-              <strong className="text-primary">Our Mission:</strong> To empower aspiring aviation 
-              professionals with world-class training, practical experience, and the confidence 
-              to excel in their chosen aviation careers.
+              <strong className="text-primary">Our Mission:</strong> To bridge the gap between aviation ambition and airline selection by delivering end-to-end pathway consultancy, hands-on flight simulator experience, and dedicated placement support.
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
@@ -29,7 +28,7 @@ const AboutSection = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <span className="text-sm md:text-base text-foreground font-semibold">IATA Certified Programs</span>
+                <span className="text-sm md:text-base text-foreground font-semibold">Career Pathway Consulting</span>
               </div>
               
               <div className="flex items-center space-x-3 md:space-x-4">
@@ -38,7 +37,7 @@ const AboutSection = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                   </svg>
                 </div>
-                <span className="text-sm md:text-base text-foreground font-semibold">Expert Industry Faculty</span>
+                <span className="text-sm md:text-base text-foreground font-semibold">DGCA & IATA Ground Training</span>
               </div>
               
               <div className="flex items-center space-x-3 md:space-x-4">
@@ -47,7 +46,7 @@ const AboutSection = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </div>
-                <span className="text-sm md:text-base text-foreground font-semibold">Modern Training Facilities</span>
+                <span className="text-sm md:text-base text-foreground font-semibold">Flight Simulators & Mock Cabins</span>
               </div>
               
               <div className="flex items-center space-x-3 md:space-x-4">
@@ -56,7 +55,7 @@ const AboutSection = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 002 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
                   </svg>
                 </div>
-                <span className="text-sm md:text-base text-foreground font-semibold">Guaranteed Job Placement</span>
+                <span className="text-sm md:text-base text-foreground font-semibold">Airline Placement Assistance</span>
               </div>
             </div>
           </div>

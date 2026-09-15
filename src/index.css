@@ -132,6 +132,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 }
 
@@ -244,6 +245,21 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  /* Infinite Marquee */
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marqueeScroll 28s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes marqueeScroll {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
   }
 }
 

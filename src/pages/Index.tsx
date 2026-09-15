@@ -1,48 +1,65 @@
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
+import AirlinePartnersMarquee from "@/components/AirlinePartnersMarquee";
 import AboutSection from "@/components/AboutSection";
 import ProgramsSection from "@/components/ProgramsSection";
+import StudentCareerRoadmap from "@/components/StudentCareerRoadmap";
+import CertificateVerificationBanner from "@/components/CertificateVerificationBanner";
 import TestimonialsSection from "@/components/TestimonialsSection";
-import IndustryPartnersSection from "@/components/IndustryPartnersSection";
+import FAQSection from "@/components/FAQSection";
 import AdmissionsSection from "@/components/AdmissionsSection";
 import Footer from "@/components/Footer";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Header />
       
-      {/* Hero Section */}
-      <section id="home" className="md:pt-16 pt-8">
+      {/* 1. Dynamic Hero Slider */}
+      <section id="home">
         <HeroSection />
       </section>
+
+      {/* 2. Top Airline Partners Marquee */}
+      <AirlinePartnersMarquee />
       
-      {/* About Section */}
-      <section id="about" className="md:pt-16 pt-8">
+      {/* 3. About Section */}
+      <section id="about">
         <AboutSection />
       </section>
       
-      {/* Programs Section */}
-      <section id="programs" className="md:pt-16 pt-8">
+      {/* 4. Interactive Training Programs */}
+      <section id="programs">
         <ProgramsSection />
       </section>
+
+      {/* 5. 4-Step Career Roadmap */}
+      <StudentCareerRoadmap />
+
+      {/* 6. Certificate Verification Banner */}
+      <section id="verify-banner" className="py-2 sm:py-4">
+        <CertificateVerificationBanner />
+      </section>
       
-      {/* Testimonials Section */}
-      <section id="testimonials" className="md:pt-16 pt-8">
+      {/* 7. Alumni Success Stories Slider */}
+      <section id="testimonials">
         <TestimonialsSection />
       </section>
+
+      {/* 8. Interactive Frequently Asked Questions (FAQ / AEO / GEO) */}
+      <FAQSection />
       
-      {/* Industry Partners Section */}
-      <section id="partners" className="md:pt-16 pt-8">
-          <IndustryPartnersSection />
-      </section>
-      
-      {/* Admissions Section */}
-      <section id="contact" className="md:pt-16 pt-8">
+      {/* 9. Admissions Section */}
+      <section id="contact">
         <AdmissionsSection />
       </section>
       
+      {/* 9. Footer */}
       <Footer />
+
+      {/* 10. WhatsApp Instant Counseling Button */}
+      <WhatsAppFloatingButton />
     </div>
   );
 };

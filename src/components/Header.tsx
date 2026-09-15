@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Menu, X, Phone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Menu, X, Phone, ShieldCheck, Award, GraduationCap } from "lucide-react";
 import logoImage from "@/assets/indo-air-aviation-logo-removebg-preview.png";
 
 const Header = () => {
@@ -12,170 +12,224 @@ const Header = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsScrolled(scrollTop > 50);
+      setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Navigation function that works from any page
+  // Navigation function that works smoothly across all pages
   const navigateToSection = (sectionId: string) => {
-    // Close mobile menu if open
     setIsMenuOpen(false);
     
-    // If we're not on the homepage, navigate to homepage first
     if (location.pathname !== '/') {
-      navigate('/', { replace: true });
-      // Wait for navigation to complete, then scroll
-      setTimeout(() => {
-        scrollToElement(sectionId);
-      }, 100);
+      if (sectionId === 'home') {
+        navigate('/');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate(`/#${sectionId}`);
+      }
     } else {
-      // We're already on homepage, just scroll
-      scrollToElement(sectionId);
-    }
-  };
-
-  // Smooth scroll function
-  const scrollToElement = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      // Calculate offset for fixed header
-      const headerHeight = 64; // 16 * 4 = 64px (h-16)
-      const elementPosition = element.offsetTop - headerHeight;
-      
-      // Smooth scroll to section
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth'
-      });
+      if (sectionId === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const headerHeight = 80;
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+        window.scrollTo({
+          top: elementPosition,
+          behavior: 'smooth'
+        });
+      }
     }
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-[60] transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-primary/95 backdrop-blur-sm shadow-lg' 
-        : 'bg-primary/95'
-    }`}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-1 relative z-50">
-          {/* Logo - Hanging below header */}
-          <div className="relative flex items-center space-x-3 absolute bottom-0 left-0">
-            <img 
-              src={logoImage} 
-              alt="Indo Air Aviation Academy Logo" 
-              className="h-[80px] sm:h-[100px] md:h-[120px] lg:h-[160px] w-auto object-contain transition-all duration-300 relative z-50 drop-shadow-lg cursor-pointer hover:scale-105"
-              onClick={() => navigateToSection('home')}
-            />
+    <header 
+      className={`fixed top-0 left-0 right-0 z-[60] transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-slate-950/90 backdrop-blur-md shadow-xl border-b border-white/10 py-2.5' 
+          : 'bg-gradient-to-b from-slate-950/95 via-slate-950/80 to-transparent py-3 sm:py-4'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          
+          {/* Brand Logo & Title */}
+          <div 
+            onClick={() => navigateToSection('home')}
+            className="flex items-center space-x-3 cursor-pointer group select-none"
+          >
+            <div className="relative">
+              <img 
+                src={logoImage} 
+                alt="Indo Air Aviation Academy Logo" 
+                className="h-10 sm:h-12 md:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-md"
+              />
+            </div>
+            <div className="hidden min-[380px]:block">
+              <span className="font-extrabold text-sm sm:text-base md:text-lg text-white tracking-tight leading-tight block group-hover:text-amber-300 transition-colors">
+                Indo Air Aviation
+              </span>
+              <span className="text-[10px] sm:text-xs text-amber-400 font-semibold tracking-wider uppercase block">
+                Consultancy & Training • Indore
+              </span>
+            </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-4 lg:space-x-8">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
             <button 
               onClick={() => navigateToSection('home')} 
-              className="text-white transition-colors font-medium cursor-pointer text-sm lg:text-base hover:text-yellow-300"
+              className="px-3.5 py-1.5 text-xs lg:text-sm text-slate-200 hover:text-white font-semibold rounded-full hover:bg-white/10 transition-all cursor-pointer"
             >
               Home
             </button>
             <button 
               onClick={() => navigateToSection('about')} 
-              className="text-white transition-colors font-medium cursor-pointer text-sm lg:text-base hover:text-yellow-300"
+              className="px-3.5 py-1.5 text-xs lg:text-sm text-slate-200 hover:text-white font-semibold rounded-full hover:bg-white/10 transition-all cursor-pointer"
             >
               About
             </button>
             <button 
               onClick={() => navigateToSection('programs')} 
-              className="text-white transition-colors font-medium cursor-pointer text-sm lg:text-base hover:text-yellow-300"
+              className="px-3.5 py-1.5 text-xs lg:text-sm text-slate-200 hover:text-white font-semibold rounded-full hover:bg-white/10 transition-all cursor-pointer"
             >
               Programs
             </button>
             <button 
-              onClick={() => navigateToSection('testimonials')} 
-              className="text-white transition-colors font-medium cursor-pointer text-sm lg:text-base hover:text-yellow-300"
+              onClick={() => navigateToSection('faq')} 
+              className="px-3.5 py-1.5 text-xs lg:text-sm text-slate-200 hover:text-white font-semibold rounded-full hover:bg-white/10 transition-all cursor-pointer"
             >
-              Testimonials
+              FAQs
             </button>
             <button 
               onClick={() => navigateToSection('contact')} 
-              className="text-white transition-colors font-medium cursor-pointer text-sm lg:text-base hover:text-yellow-300"
+              className="px-3.5 py-1.5 text-xs lg:text-sm text-slate-200 hover:text-white font-semibold rounded-full hover:bg-white/10 transition-all cursor-pointer"
             >
-              Contact
+              Admissions
             </button>
           </nav>
 
-          {/* Contact Info & CTA */}
-          <div className="hidden lg:flex items-center space-x-2 xl:space-x-4">
-            <div className="flex items-center space-x-2 text-sm text-white">
-              <Phone className="w-4 h-4 text-white" />
-              <span className="text-white">+91 8233787629</span>
-            </div>
-            <Button 
-              size="sm" 
-              className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-xs lg:text-sm px-2 lg:px-4"
-              onClick={() => window.open('mailto:Indoairaviation107@gmail.com?subject=Enrollment%20Inquiry%20-%20Indo%20Air%20Aviation%20Academy&body=Hi,%0A%0AI%20am%20interested%20in%20enrolling%20at%20Indo%20Air%20Aviation%20Academy.%20Please%20send%20me%20more%20information%20about%20your%20programs%20and%20admission%20process.%0A%0AThank%20you!')}
+          {/* Right Action Bar */}
+          <div className="hidden lg:flex items-center space-x-3">
+            {/* Verify Certificate Pill */}
+            <button
+              onClick={() => {
+                navigate('/verify');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                location.pathname === '/verify'
+                  ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-400/20'
+                  : 'bg-white/10 text-amber-300 border-amber-400/40 hover:bg-amber-400 hover:text-slate-950'
+              }`}
             >
-              🚀 Enroll Now - Limited Seats!
-            </Button>
+              <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>Verify Certificate</span>
+            </button>
+
+            {/* Direct Phone Call Button */}
+            <a 
+              href="tel:+918233787629" 
+              className="inline-flex items-center space-x-1.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs px-3.5 py-2 rounded-full border border-white/10 shadow-md transition-all transform hover:scale-105"
+            >
+              <Phone className="w-3.5 h-3.5 text-amber-400" />
+              <span>+91 8233787629</span>
+            </a>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-white transition-colors z-50 relative"
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile Right Bar */}
+          <div className="flex items-center space-x-2 md:hidden">
+            {/* Quick verify button on mobile */}
+            <button
+              onClick={() => {
+                navigate('/verify');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="inline-flex items-center space-x-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-sm"
+            >
+              <ShieldCheck className="w-3 h-3" />
+              <span>Verify</span>
+            </button>
+
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors z-50 cursor-pointer"
+              aria-label="Toggle Navigation Menu"
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Dropdown Drawer */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/50 bg-primary/95 backdrop-blur-sm">
-            <nav className="flex flex-col space-y-4">
+          <div className="md:hidden mt-3 pt-3 pb-5 border-t border-white/10 bg-slate-950/95 backdrop-blur-xl rounded-2xl shadow-2xl px-4 animate-in slide-in-from-top-2 duration-300">
+            <nav className="flex flex-col space-y-1">
               <button 
                 onClick={() => navigateToSection('home')} 
-                className="text-white transition-colors font-medium py-3 text-left cursor-pointer hover:text-yellow-300 active:text-yellow-400 text-base"
+                className="text-slate-200 hover:text-amber-300 font-semibold py-2.5 px-3 rounded-lg text-left text-sm hover:bg-white/5 transition-all cursor-pointer"
               >
                 Home
               </button>
               <button 
                 onClick={() => navigateToSection('about')} 
-                className="text-white transition-colors font-medium py-3 text-left cursor-pointer hover:text-yellow-300 active:text-yellow-400 text-base"
+                className="text-slate-200 hover:text-amber-300 font-semibold py-2.5 px-3 rounded-lg text-left text-sm hover:bg-white/5 transition-all cursor-pointer"
               >
-                About
+                About Academy
               </button>
               <button 
                 onClick={() => navigateToSection('programs')} 
-                className="text-white transition-colors font-medium py-3 text-left cursor-pointer hover:text-yellow-300 active:text-yellow-400 text-base"
+                className="text-slate-200 hover:text-amber-300 font-semibold py-2.5 px-3 rounded-lg text-left text-sm hover:bg-white/5 transition-all cursor-pointer"
               >
-                Programs
+                Training Programs
               </button>
               <button 
-                onClick={() => navigateToSection('testimonials')} 
-                className="text-white transition-colors font-medium py-3 text-left cursor-pointer hover:text-yellow-300 active:text-yellow-400 text-base"
+                onClick={() => navigateToSection('faq')} 
+                className="text-slate-200 hover:text-amber-300 font-semibold py-2.5 px-3 rounded-lg text-left text-sm hover:bg-white/5 transition-all cursor-pointer"
               >
-                Testimonials
+                Frequently Asked Questions
               </button>
               <button 
                 onClick={() => navigateToSection('contact')} 
-                className="text-white transition-colors font-medium py-3 text-left cursor-pointer hover:text-yellow-300 active:text-yellow-400 text-base"
+                className="text-slate-200 hover:text-amber-300 font-semibold py-2.5 px-3 rounded-lg text-left text-sm hover:bg-white/5 transition-all cursor-pointer"
               >
-                Contact
+                Admissions & Enrollment
               </button>
-              <div className="pt-4 border-t border-border/50">
-                <div className="flex items-center space-x-2 text-sm text-white mb-3">
-                  <Phone className="w-4 h-4 text-white" />
-                  <span className="text-white">+91 8233787629</span>
-                </div>
-                <Button 
-                  size="sm" 
-                  className="w-full bg-white text-primary hover:bg-white/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  onClick={() => window.open('mailto:Indoairaviation107@gmail.com?subject=Enrollment%20Inquiry%20-%20Indo%20Air%20Aviation%20Academy&body=Hi,%0A%0AI%20am%20interested%20in%20enrolling%20at%20Indo%20Air%20Aviation%20Academy.%20Please%20send%20me%20more%20information%20about%20your%20programs%20and%20admission%20process.%0A%0AThank%20you!')}
+              <button 
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  navigate('/verify');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }} 
+                className="text-amber-300 font-bold py-2.5 px-3 rounded-lg text-left text-sm bg-amber-400/10 border border-amber-400/20 flex items-center justify-between mt-1 cursor-pointer"
+              >
+                <span className="flex items-center">
+                  <ShieldCheck className="w-4 h-4 mr-2 text-amber-400" />
+                  Verify Certificate
+                </span>
+                <span className="text-[10px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded font-extrabold uppercase">
+                  Official
+                </span>
+              </button>
+
+              {/* Call Admissions Footer in Drawer */}
+              <div className="pt-3 mt-2 border-t border-white/10 flex items-center justify-between">
+                <a 
+                  href="tel:+918233787629" 
+                  className="flex items-center text-xs text-slate-300 font-medium hover:text-white"
                 >
-                  🚀 Enroll Now - Limited Seats!
-                </Button>
+                  <Phone className="w-3.5 h-3.5 text-amber-400 mr-1.5" />
+                  +91-8233787629
+                </a>
+                <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  ● Admissions Open
+                </span>
               </div>
             </nav>
           </div>
