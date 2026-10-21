@@ -403,20 +403,6 @@ export const studentService = {
 
     if (isSupabaseConfigured) {
       try {
-        const rpcParams: Record<string, string> = {
-          p_registration_number: regNoTrimmed,
-        };
-        if (dobTrimmed) {
-          rpcParams.p_date_of_birth = dobTrimmed;
-        }
-
-        const { data, error } = await supabase.rpc('verify_student_certificate', rpcParams);
-
-        if (!error && data && Array.isArray(data) && data.length > 0) {
-          return { data: data[0] as PublicVerificationResult, verified: true, error: null };
-        }
-
-        // Direct Supabase query fallback
         let query = supabase
           .from('students')
           .select('student_name, father_name, registration_number, date_of_birth, course_name, admission_date, course_start_date, course_end_date, status, photo_url')
