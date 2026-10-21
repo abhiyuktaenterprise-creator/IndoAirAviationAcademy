@@ -20,6 +20,7 @@ import {
 import { Student } from '@/services/studentService';
 import { renderLuxuryCertificate, CertificateData } from '@/utils/certificateCanvas';
 import logoImage from '@/assets/indo-air-aviation-logo-removebg-preview.png';
+import signatureImage from '@/assets/ss-rajpoot-signature.png';
 
 interface CertificateModalProps {
   open: boolean;
@@ -83,7 +84,12 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       if (canvasRef.current && isMounted) {
         setLoading(true);
         try {
-          await renderLuxuryCertificate(canvasRef.current, formData, logoImage);
+          await renderLuxuryCertificate(
+            canvasRef.current,
+            formData,
+            logoImage,
+            signatureImage
+          );
         } finally {
           if (isMounted) setLoading(false);
         }
