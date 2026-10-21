@@ -28,6 +28,7 @@ export interface PublicVerificationResult {
   student_name: string;
   father_name: string;
   registration_number: string;
+  date_of_birth?: string;
   course_name: string;
   admission_date: string;
   course_start_date: string;
@@ -362,24 +363,44 @@ export const studentService = {
    */
   async verifyCertificate(
     registrationNumber: string,
-    dateOfBirth: string
+    dateOfBirth?: string
   ): Promise<{ data: PublicVerificationResult | null; verified: boolean; error: string | null }> {
     const regNoTrimmed = registrationNumber.trim();
-    const dobTrimmed = dateOfBirth.trim();
+    const dobTrimmed = dateOfBirth?.trim();
 
-    if (!regNoTrimmed || !dobTrimmed) {
-      return { data: null, verified: false, error: 'Both Registration Number and Date of Birth are required.' };
+    if (!regNoTrimmed) {
+      return { data: null, verified: false, error: 'Registration Number is required.' };
     }
 
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.rpc('verify_student_certificate', {
+        const rpcParams: Record<string, string> = {
           p_registration_number: regNoTrimmed,
-          p_date_of_birth: dobTrimmed,
-        });
+        };
+        if (dobTrimmed) {
+          rpcParams.p_date_of_birth = dobTrimmed;
+        }
+
+        const { data, error } = await supabase.rpc('verify_student_certificate', rpcParams);
 
         if (!error && data && Array.isArray(data) && data.length > 0) {
           return { data: data[0] as PublicVerificationResult, verified: true, error: null };
+        }
+
+        // Direct Supabase query fallback
+        let query = supabase
+          .from('students')
+          .select('student_name, father_name, registration_number, date_of_birth, course_name, admission_date, course_start_date, course_end_date, status, photo_url')
+          .or(`registration_number.ilike.${regNoTrimmed},application_number.ilike.${regNoTrimmed}`)
+          .eq('is_archived', false);
+
+        if (dobTrimmed) {
+          query = query.eq('date_of_birth', dobTrimmed);
+        }
+
+        const { data: directData, error: directError } = await query.maybeSingle();
+        if (!directError && directData) {
+          return { data: directData as PublicVerificationResult, verified: true, error: null };
         }
       } catch {
         // Fallback to local
@@ -388,18 +409,24 @@ export const studentService = {
 
     // Local Verification Lookup
     const list = getLocalStudents();
-    const match = list.find(
-      (s) =>
-        s.registration_number.trim().toUpperCase() === regNoTrimmed.toUpperCase() &&
-        s.date_of_birth === dobTrimmed &&
-        !s.is_archived
-    );
+    const cleanRegNo = regNoTrimmed.toUpperCase();
+
+    const match = list.find((s) => {
+      const regMatches =
+        s.registration_number.trim().toUpperCase() === cleanRegNo ||
+        s.application_number.trim().toUpperCase() === cleanRegNo;
+
+      if (!regMatches || s.is_archived) return false;
+      if (dobTrimmed) return s.date_of_birth === dobTrimmed;
+      return true;
+    });
 
     if (match) {
       const publicResult: PublicVerificationResult = {
         student_name: match.student_name,
         father_name: match.father_name,
         registration_number: match.registration_number,
+        date_of_birth: match.date_of_birth,
         course_name: match.course_name,
         admission_date: match.admission_date,
         course_start_date: match.course_start_date,

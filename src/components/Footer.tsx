@@ -97,6 +97,12 @@ const Footer: React.FC = () => {
               DGCA-aligned ground school, flight simulator training, and direct placement assistance with leading airlines.
             </p>
 
+            {/* Executive Leadership */}
+            <div className="inline-flex items-center space-x-2.5 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-lg text-xs">
+              <span className="text-slate-400 font-medium">Company CEO:</span>
+              <span className="text-white font-bold tracking-wide">S S Rajpoot</span>
+            </div>
+
             {/* Verification Callout Box */}
             <div className="bg-slate-900/90 border border-amber-400/30 rounded-2xl p-3.5 space-y-2">
               <div className="flex items-center space-x-2 text-amber-300 text-xs font-bold">

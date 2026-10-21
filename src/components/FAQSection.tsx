@@ -62,7 +62,7 @@ const FAQ_DATA: FAQItem[] = [
     category: "placement",
     badge: "Verification",
     question: "How can airlines, recruiters, and students verify certificates issued by the academy?",
-    answer: "All course completion certificates issued by Indo Air Aviation Academy can be verified 24/7 through our official online verification portal at /verify. Recruiters and students simply enter the student's unique Registration Number and Date of Birth to view the authenticated institutional certificate record.",
+    answer: "All course completion certificates issued by Indo Air Aviation Academy can be verified 24/7 through our official online verification portal at /verify. Recruiters and students simply enter the student's unique Registration Number to view the authenticated institutional certificate record.",
   },
   {
     id: "item-7",

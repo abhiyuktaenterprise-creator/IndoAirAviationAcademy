@@ -13,20 +13,30 @@ import {
   Search,
   RotateCcw,
   Printer,
-  Calendar,
   Award,
   CheckCircle2,
   XCircle,
   HelpCircle,
   FileCheck,
-  User,
-  GraduationCap,
 } from 'lucide-react';
 import logoImage from '@/assets/indo-air-aviation-logo-removebg-preview.png';
 
+const formatDateOfBirth = (dob?: string | null): string => {
+  if (!dob) return '';
+  try {
+    const parts = dob.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return `${day}/${month}/${year}`;
+    }
+    return dob;
+  } catch {
+    return dob;
+  }
+};
+
 export const StudentVerification: React.FC = () => {
   const [registrationNumber, setRegistrationNumber] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [verifiedResult, setVerifiedResult] = useState<PublicVerificationResult | null>(null);
@@ -37,10 +47,9 @@ export const StudentVerification: React.FC = () => {
     setErrorMessage(null);
 
     const regNo = registrationNumber.trim();
-    const dob = dateOfBirth.trim();
 
-    if (!regNo || !dob) {
-      setErrorMessage('Please enter both the Registration Number and Date of Birth.');
+    if (!regNo) {
+      setErrorMessage('Please enter the Registration Number.');
       return;
     }
 
@@ -48,7 +57,7 @@ export const StudentVerification: React.FC = () => {
     setHasSearched(true);
 
     try {
-      const res = await studentService.verifyCertificate(regNo, dob);
+      const res = await studentService.verifyCertificate(regNo);
 
       if (res.error) {
         setErrorMessage(res.error);
@@ -60,8 +69,9 @@ export const StudentVerification: React.FC = () => {
         setVerifiedResult(null);
         setErrorMessage(null); // Triggers "No matching record" view
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Verification service error. Please try again.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Verification service error. Please try again.';
+      setErrorMessage(message);
       setVerifiedResult(null);
     } finally {
       setLoading(false);
@@ -70,7 +80,6 @@ export const StudentVerification: React.FC = () => {
 
   const handleReset = () => {
     setRegistrationNumber('');
-    setDateOfBirth('');
     setHasSearched(false);
     setVerifiedResult(null);
     setErrorMessage(null);
@@ -111,45 +120,24 @@ export const StudentVerification: React.FC = () => {
 
           <CardContent className="p-6 sm:p-8">
             <form onSubmit={handleVerify} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {/* Registration Number */}
-                <div className="space-y-2">
-                  <Label htmlFor="regNo" className="text-sm font-bold text-slate-800">
-                    Registration Number *
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="regNo"
-                      type="text"
-                      placeholder="e.g. IAA-2026-100"
-                      value={registrationNumber}
-                      onChange={(e) => setRegistrationNumber(e.target.value)}
-                      className="font-mono text-sm sm:text-base uppercase bg-slate-50 border-slate-300 focus:bg-white focus:border-primary"
-                      required
-                    />
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    Located on the top of your certificate or admission card.
-                  </p>
-                </div>
-
-                {/* Date of Birth */}
-                <div className="space-y-2">
-                  <Label htmlFor="dob" className="text-sm font-bold text-slate-800">
-                    Date of Birth (DOB) *
-                  </Label>
+              <div className="space-y-2">
+                <Label htmlFor="regNo" className="text-sm font-bold text-slate-800">
+                  Registration Number *
+                </Label>
+                <div className="relative">
                   <Input
-                    id="dob"
-                    type="date"
-                    value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="text-sm sm:text-base bg-slate-50 border-slate-300 focus:bg-white focus:border-primary"
+                    id="regNo"
+                    type="text"
+                    placeholder="e.g. IAA27Y2GV2026/8425 or IAA-2026-100"
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    className="font-mono text-sm sm:text-base uppercase bg-slate-50 border-slate-300 focus:bg-white focus:border-primary h-12"
                     required
                   />
-                  <p className="text-[11px] text-slate-500">
-                    Used as a security verification step to protect student privacy.
-                  </p>
                 </div>
+                <p className="text-[11px] text-slate-500">
+                  Located on the top of your certificate, admission letter, or student card.
+                </p>
               </div>
 
               {errorMessage && (
@@ -280,7 +268,7 @@ export const StudentVerification: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="sm:col-span-2 pt-2 border-t border-slate-200/60">
+                    <div className="pt-2 border-t border-slate-200/60">
                       <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
                         Registration Number
                       </span>
@@ -288,6 +276,17 @@ export const StudentVerification: React.FC = () => {
                         {verifiedResult.registration_number}
                       </span>
                     </div>
+
+                    {verifiedResult.date_of_birth && (
+                      <div className="pt-2 border-t border-slate-200/60">
+                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                          Date of Birth
+                        </span>
+                        <span className="text-slate-900 font-semibold text-base mt-0.5 block">
+                          {formatDateOfBirth(verifiedResult.date_of_birth)}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="sm:col-span-2 pt-2 border-t border-slate-200/60">
                       <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
@@ -346,6 +345,41 @@ export const StudentVerification: React.FC = () => {
                   </p>
                 </div>
 
+                {/* Official Issuing Authority & Signatory */}
+                <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/60 p-4 rounded-xl border border-slate-100">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full border-2 border-emerald-500/30 bg-emerald-100/50 flex items-center justify-center text-emerald-700 flex-shrink-0">
+                      <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        Issuing Authority
+                      </p>
+                      <p className="text-xs font-bold text-slate-800">
+                        Indo Air Aviation Academy
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        Sayaji Plaza, Indore (M.P.) • Aviation Training & Consultancy
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-center sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 w-full sm:w-auto">
+                    <div className="inline-block text-center sm:text-right">
+                      <div className="font-serif italic font-bold text-base text-slate-800 tracking-wider">
+                        S S Rajpoot
+                      </div>
+                      <div className="w-28 sm:w-32 h-0.5 bg-slate-300 mx-auto sm:ml-auto my-1"></div>
+                      <p className="text-xs font-bold text-slate-800">
+                        S S Rajpoot
+                      </p>
+                      <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                        Company CEO
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-2 print:hidden">
                   <Button
@@ -397,14 +431,13 @@ export const StudentVerification: React.FC = () => {
 
                 <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
                   Sorry, we could not find a matching official record for Registration Number{' '}
-                  <span className="font-mono font-semibold text-slate-900">{registrationNumber}</span> with the provided Date of Birth.
+                  <span className="font-mono font-semibold text-slate-900">{registrationNumber}</span>.
                 </p>
 
                 <div className="p-4 bg-slate-50 rounded-xl text-xs text-slate-600 max-w-lg mx-auto text-left space-y-1.5 border border-slate-200">
                   <p className="font-semibold text-slate-800">Please check the following:</p>
                   <ul className="list-disc list-inside space-y-1 text-slate-600">
-                    <li>Ensure the Registration Number is spelled exactly as shown on the certificate (e.g. <code>IAA-2026-00125</code>).</li>
-                    <li>Ensure the Date of Birth matches your registered admission records.</li>
+                    <li>Ensure the Registration Number is spelled exactly as shown on the certificate (e.g. <code>IAA27Y2GV2026/8425</code>).</li>
                     <li>If you recently enrolled or completed your training, your certificate record may take 24–48 hours to synchronize.</li>
                   </ul>
                 </div>

@@ -72,11 +72,10 @@ CREATE POLICY "Admins full access to students"
 
 -- 6. Secure Public Verification Function (RPC)
 -- This function runs with SECURITY DEFINER so it can query the table safely,
--- but returns ONLY whitelisted public certificate fields when both Registration No
--- and Date of Birth match an active, unarchived student.
+-- returning ONLY whitelisted public certificate fields when Registration No matches.
 CREATE OR REPLACE FUNCTION public.verify_student_certificate(
     p_registration_number TEXT,
-    p_date_of_birth DATE
+    p_date_of_birth DATE DEFAULT NULL
 )
 RETURNS TABLE (
     student_name VARCHAR,
@@ -86,7 +85,8 @@ RETURNS TABLE (
     admission_date DATE,
     course_start_date DATE,
     course_end_date DATE,
-    status VARCHAR
+    status VARCHAR,
+    photo_url TEXT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -101,10 +101,14 @@ BEGIN
         s.admission_date,
         s.course_start_date,
         s.course_end_date,
-        s.status
+        s.status,
+        s.photo_url
     FROM public.students s
-    WHERE UPPER(TRIM(s.registration_number)) = UPPER(TRIM(p_registration_number))
-      AND s.date_of_birth = p_date_of_birth
+    WHERE (
+        UPPER(TRIM(s.registration_number)) = UPPER(TRIM(p_registration_number))
+        OR UPPER(TRIM(s.application_number)) = UPPER(TRIM(p_registration_number))
+    )
+      AND (p_date_of_birth IS NULL OR s.date_of_birth = p_date_of_birth)
       AND s.is_archived = FALSE
     LIMIT 1;
 END;
@@ -112,6 +116,32 @@ $$;
 
 -- Grant execution permission to both public visitors and authenticated admins
 GRANT EXECUTE ON FUNCTION public.verify_student_certificate(TEXT, DATE) TO anon, authenticated;
+
+-- Single-parameter overload for convenient direct RPC calls
+CREATE OR REPLACE FUNCTION public.verify_student_certificate(
+    p_registration_number TEXT
+)
+RETURNS TABLE (
+    student_name VARCHAR,
+    father_name VARCHAR,
+    registration_number VARCHAR,
+    course_name VARCHAR,
+    admission_date DATE,
+    course_start_date DATE,
+    course_end_date DATE,
+    status VARCHAR,
+    photo_url TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT * FROM public.verify_student_certificate(p_registration_number, NULL);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.verify_student_certificate(TEXT) TO anon, authenticated;
 
 -- ==============================================================================
 -- OPTIONAL: Sample Record for Instant Verification Testing
