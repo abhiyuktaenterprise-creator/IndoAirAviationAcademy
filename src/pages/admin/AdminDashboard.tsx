@@ -60,6 +60,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoImage from '@/assets/indo-air-aviation-logo-removebg-preview.png';
+import { CertificateModal } from '@/components/admin/CertificateModal';
 
 const POPULAR_COURSES = [
   'Commercial Pilot License (CPL)',
@@ -125,6 +126,13 @@ export const AdminDashboard: React.FC = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [certStudent, setCertStudent] = useState<Student | null>(null);
+
+  const handleOpenCertificate = (student?: Student | null) => {
+    setCertStudent(student || null);
+    setShowCertModal(true);
+  };
 
   // Active student targets
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -429,9 +437,22 @@ export const AdminDashboard: React.FC = () => {
                 onClick={() => navigate('/')}
               />
               <div className="min-w-0 truncate">
-                <span className="font-bold text-sm sm:text-lg tracking-tight block truncate">
-                  Indo Air Aviation Academy
-                </span>
+                <div className="flex items-center space-x-2">
+                  <span className="font-bold text-sm sm:text-lg tracking-tight block truncate">
+                    Indo Air Aviation Academy
+                  </span>
+                  {isSupabaseConfigured ? (
+                    <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5" />
+                      Live Cloud Sync
+                    </span>
+                  ) : (
+                    <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5" />
+                      Local Storage
+                    </span>
+                  )}
+                </div>
                 <span className="text-[10px] sm:text-[11px] text-amber-400 font-medium block uppercase tracking-wider">
                   Admin Portal
                 </span>
@@ -532,6 +553,14 @@ export const AdminDashboard: React.FC = () => {
               <Plus className="w-4 h-4 mr-1.5" />
               Add Student
             </Button>
+            <Button
+              onClick={() => handleOpenCertificate(null)}
+              className="bg-amber-600 hover:bg-amber-500 text-white font-semibold shadow-md inline-flex items-center cursor-pointer text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5"
+              title="Open Certificate Generator"
+            >
+              <Award className="w-4 h-4 mr-1.5" />
+              <span>Create Certificate</span>
+            </Button>
           </div>
         </div>
 
@@ -622,6 +651,15 @@ export const AdminDashboard: React.FC = () => {
                 <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-[11px] text-slate-400 font-mono">App: {student.application_number}</span>
                   <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleOpenCertificate(student)}
+                      className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                      title="Download Certificate"
+                    >
+                      <Award className="w-4 h-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -749,6 +787,17 @@ export const AdminDashboard: React.FC = () => {
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Generate & Download Certificate"
+                            onClick={() => handleOpenCertificate(student)}
+                            className="h-8 px-2.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 cursor-pointer text-xs font-semibold inline-flex items-center"
+                          >
+                            <Award className="w-3.5 h-3.5 mr-1" />
+                            <span>Certificate</span>
+                          </Button>
+
                           <Button
                             variant="ghost"
                             size="icon"
@@ -1426,8 +1475,18 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2">
-                <Button variant="outline" onClick={() => setIsViewOpen(false)}>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-2 pt-2">
+                <Button
+                  onClick={() => {
+                    setIsViewOpen(false);
+                    handleOpenCertificate(selectedStudent);
+                  }}
+                  className="w-full sm:w-auto bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs"
+                >
+                  <Award className="w-4 h-4 mr-1.5" />
+                  Generate Admission Certificate
+                </Button>
+                <Button variant="outline" onClick={() => setIsViewOpen(false)} className="w-full sm:w-auto">
                   Close
                 </Button>
               </div>
@@ -1457,6 +1516,15 @@ export const AdminDashboard: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ========================================================================= */}
+      {/* LUXURY ADMISSION CERTIFICATE GENERATOR MODAL                              */}
+      {/* ========================================================================= */}
+      <CertificateModal
+        open={showCertModal}
+        onOpenChange={setShowCertModal}
+        student={certStudent}
+      />
     </div>
   );
 };

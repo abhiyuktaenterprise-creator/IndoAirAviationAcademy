@@ -162,6 +162,9 @@ export const studentService = {
 
         const { data, error } = await query;
         if (!error && data) {
+          if (data.length > 0 && !trimmed && !showArchived) {
+            saveLocalStudents(data as Student[]);
+          }
           return { data: data as Student[], error: null };
         }
       } catch {
@@ -215,6 +218,14 @@ export const studentService = {
           .single();
 
         if (!error && data) {
+          const list = getLocalStudents();
+          const existingIdx = list.findIndex((s) => s.id === (data as Student).id);
+          if (existingIdx !== -1) {
+            list[existingIdx] = data as Student;
+          } else {
+            list.unshift(data as Student);
+          }
+          saveLocalStudents(list);
           return { data: data as Student, error: null };
         }
         if (error) {
@@ -275,6 +286,14 @@ export const studentService = {
           .single();
 
         if (!error && data) {
+          const list = getLocalStudents();
+          const existingIdx = list.findIndex((s) => s.id === (data as Student).id);
+          if (existingIdx !== -1) {
+            list[existingIdx] = data as Student;
+          } else {
+            list.unshift(data as Student);
+          }
+          saveLocalStudents(list);
           return { data: data as Student, error: null };
         }
         if (error) {
@@ -315,7 +334,12 @@ export const studentService = {
           .update({ is_archived })
           .eq('id', id);
 
-        if (!error) return { success: true, error: null };
+        if (!error) {
+          let list = getLocalStudents();
+          list = list.filter((s) => s.id !== id);
+          saveLocalStudents(list);
+          return { success: true, error: null };
+        }
       } catch {
         // Fallback
       }
@@ -344,7 +368,12 @@ export const studentService = {
           .delete()
           .eq('id', id);
 
-        if (!error) return { success: true, error: null };
+        if (!error) {
+          let list = getLocalStudents();
+          list = list.filter((s) => s.id !== id);
+          saveLocalStudents(list);
+          return { success: true, error: null };
+        }
       } catch {
         // Fallback
       }

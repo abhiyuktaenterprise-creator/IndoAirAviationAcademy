@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.students (
     -- Status & Archival
     status VARCHAR(30) NOT NULL DEFAULT 'Completed', -- e.g., 'Active', 'Completed', 'Discontinued'
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    photo_url TEXT,
     
     -- Timestamps
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -58,17 +59,15 @@ CREATE TRIGGER trigger_students_updated_at
 -- 4. Enable Row Level Security (RLS)
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 
--- 5. Security Policy: Only authenticated admin can perform CRUD operations on students table
+-- 5. Security Policy: Allow frontend app (anon & authenticated) full access to manage & verify students
 DROP POLICY IF EXISTS "Admins full access to students" ON public.students;
-CREATE POLICY "Admins full access to students"
+DROP POLICY IF EXISTS "Public and Admin access to students" ON public.students;
+CREATE POLICY "Public and Admin access to students"
     ON public.students
     FOR ALL
-    TO authenticated
+    TO anon, authenticated
     USING (true)
     WITH CHECK (true);
-
--- Note: Anonymous (anon) users have NO SELECT policy on the students table directly!
--- This guarantees the public cannot dump, scrape, or query student data directly.
 
 -- 6. Secure Public Verification Function (RPC)
 -- This function runs with SECURITY DEFINER so it can query the table safely,
@@ -144,7 +143,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.verify_student_certificate(TEXT) TO anon, authenticated;
 
 -- ==============================================================================
--- OPTIONAL: Sample Record for Instant Verification Testing
+-- Default Official Academy Students
 -- ==============================================================================
 INSERT INTO public.students (
     application_number,
@@ -159,7 +158,36 @@ INSERT INTO public.students (
     course_start_date,
     course_end_date,
     status
-) VALUES (
+) VALUES 
+(
+    'IAA27Y2GV2026/8425',
+    'IAA27Y2GV2026/8425',
+    'Abhishek Navnath Arkas',
+    'Navnath Namdev Arkas',
+    '2001-08-15',
+    '8858453069',
+    'abhishek.arkas@indoaviationacademy.com',
+    'Ground staff',
+    '2024-01-15',
+    '2024-02-01',
+    '2024-11-30',
+    'Completed'
+),
+(
+    'IAA27Y2GV2026/8420',
+    'IAA27Y2GV2026/8420',
+    'Rohit kumar',
+    'Chandilal',
+    '2002-06-20',
+    '8858453069',
+    'rohit.kumar@indoaviationacademy.com',
+    'lata basic certificate',
+    '2024-01-15',
+    '2024-02-01',
+    '2024-11-30',
+    'Completed'
+),
+(
     'APP-2026-100',
     'IAA-2026-100',
     'Aarav Sharma',
@@ -172,4 +200,5 @@ INSERT INTO public.students (
     '2024-02-01',
     '2025-12-15',
     'Completed'
-) ON CONFLICT (registration_number) DO NOTHING;
+)
+ON CONFLICT (registration_number) DO NOTHING;
