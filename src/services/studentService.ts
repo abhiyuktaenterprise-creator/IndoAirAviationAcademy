@@ -36,8 +36,44 @@ export interface PublicVerificationResult {
 
 const LOCAL_STORAGE_KEY = 'iaa_students_local_registry';
 
-// Initial sample student record starting from -100
+// Official academy students registry
 const DEFAULT_STUDENTS: Student[] = [
+  {
+    id: 'std-abhishek-navnath',
+    application_number: 'IAA27Y2GV2026/8425',
+    registration_number: 'IAA27Y2GV2026/8425',
+    student_name: 'Abhishek Navnath Arkas',
+    father_name: 'Navnath Namdev Arkas',
+    date_of_birth: '2001-08-15',
+    mobile_number: '8858453069',
+    email: 'abhishek.arkas@indoaviationacademy.com',
+    course_name: 'Ground staff',
+    admission_date: '2024-01-15',
+    course_start_date: '2024-02-01',
+    course_end_date: '2024-11-30',
+    status: 'Completed',
+    is_archived: false,
+    created_at: new Date('2024-01-15').toISOString(),
+    updated_at: new Date('2024-01-15').toISOString(),
+  },
+  {
+    id: 'std-rohit-kumar',
+    application_number: 'IAA27Y2GV2026/8420',
+    registration_number: 'IAA27Y2GV2026/8420',
+    student_name: 'Rohit kumar',
+    father_name: 'Chandilal',
+    date_of_birth: '2002-06-20',
+    mobile_number: '8858453069',
+    email: 'rohit.kumar@indoaviationacademy.com',
+    course_name: 'lata basic certificate',
+    admission_date: '2024-01-15',
+    course_start_date: '2024-02-01',
+    course_end_date: '2024-11-30',
+    status: 'Completed',
+    is_archived: false,
+    created_at: new Date('2024-01-15').toISOString(),
+    updated_at: new Date('2024-01-15').toISOString(),
+  },
   {
     id: 'sample-student-1',
     application_number: 'APP-2026-100',
@@ -61,22 +97,25 @@ const DEFAULT_STUDENTS: Student[] = [
 const getLocalStudents = (): Student[] => {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_STUDENTS));
-      return DEFAULT_STUDENTS;
-    }
-    const list = JSON.parse(raw) as Student[];
-    const updated = list.map((s) => {
-      if (s.registration_number === 'IAA-2026-00125' || s.application_number === 'APP-2025-001') {
-        return {
-          ...s,
-          registration_number: 'IAA-2026-100',
-          application_number: 'APP-2026-100',
-        };
+    let list: Student[] = raw ? JSON.parse(raw) : [];
+
+    // Ensure all DEFAULT_STUDENTS are merged so any device opening the app gets latest registry
+    let hasChanges = false;
+    DEFAULT_STUDENTS.forEach((defStudent) => {
+      const exists = list.some(
+        (s) => s.registration_number.toLowerCase() === defStudent.registration_number.toLowerCase()
+      );
+      if (!exists) {
+        list.push(defStudent);
+        hasChanges = true;
       }
-      return s;
     });
-    return updated;
+
+    if (hasChanges || !raw) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(list));
+    }
+
+    return list;
   } catch {
     return DEFAULT_STUDENTS;
   }
@@ -364,5 +403,47 @@ export const studentService = {
     }
 
     return { data: null, verified: false, error: null };
+  },
+
+  /**
+   * Reset local storage to latest official registry
+   */
+  async resetToRegistry(): Promise<Student[]> {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_STUDENTS));
+      return DEFAULT_STUDENTS;
+    } catch {
+      return DEFAULT_STUDENTS;
+    }
+  },
+
+  /**
+   * Import students list (e.g. from backup JSON file)
+   */
+  async importStudents(importedStudents: Student[]): Promise<{ count: number; error: string | null }> {
+    try {
+      if (!Array.isArray(importedStudents) || importedStudents.length === 0) {
+        return { count: 0, error: 'Invalid or empty student file' };
+      }
+      const existing = getLocalStudents();
+      let added = 0;
+      importedStudents.forEach((imp) => {
+        if (!imp.registration_number || !imp.student_name) return;
+        const idx = existing.findIndex(
+          (s) => s.registration_number.toLowerCase() === imp.registration_number.toLowerCase()
+        );
+        if (idx === -1) {
+          existing.push(imp);
+          added++;
+        } else {
+          existing[idx] = { ...existing[idx], ...imp };
+          added++;
+        }
+      });
+      saveLocalStudents(existing);
+      return { count: added, error: null };
+    } catch (e: any) {
+      return { count: 0, error: e.message || 'Failed to import students' };
+    }
   },
 };

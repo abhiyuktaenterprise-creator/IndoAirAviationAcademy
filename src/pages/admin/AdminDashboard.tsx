@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '@/services/authService';
 import { studentService, Student, NewStudentInput } from '@/services/studentService';
@@ -51,6 +51,9 @@ import {
   Mail,
   BookOpen,
   Award,
+  Download,
+  Upload,
+  RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoImage from '@/assets/indo-air-aviation-logo-removebg-preview.png';
@@ -82,6 +85,7 @@ export const AdminDashboard: React.FC = () => {
 
   // Active student targets
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const initialFormState: NewStudentInput = {
@@ -273,6 +277,54 @@ export const AdminDashboard: React.FC = () => {
     loadStudents();
   };
 
+  // Export registry to JSON
+  const handleExportData = () => {
+    try {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `iaa-students-backup-${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      toast.success('Backup downloaded successfully');
+    } catch {
+      toast.error('Failed to export data');
+    }
+  };
+
+  // Sync / Reset with latest official registry
+  const handleSyncRegistry = async () => {
+    setLoading(true);
+    const updated = await studentService.resetToRegistry();
+    setStudents(updated);
+    setLoading(false);
+    toast.success('Synced with official academy registry!');
+  };
+
+  // Import JSON backup
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        const res = await studentService.importStudents(json);
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(`Imported ${res.count} student records!`);
+          loadStudents();
+        }
+      } catch {
+        toast.error('Invalid JSON file format');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   // Status Badge styling helper
   const getStatusBadge = (status: string, isArchived: boolean) => {
     if (isArchived) {
@@ -297,25 +349,25 @@ export const AdminDashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Brand */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
               <img
                 src={logoImage}
                 alt="Indo Air Aviation Academy"
-                className="h-10 w-auto object-contain cursor-pointer"
+                className="h-8 sm:h-10 w-auto object-contain cursor-pointer shrink-0"
                 onClick={() => navigate('/')}
               />
-              <div>
-                <span className="font-bold text-base sm:text-lg tracking-tight block">
+              <div className="min-w-0 truncate">
+                <span className="font-bold text-sm sm:text-lg tracking-tight block truncate">
                   Indo Air Aviation Academy
                 </span>
-                <span className="text-[11px] text-amber-400 font-medium block uppercase tracking-wider">
-                  Admin Management Portal
+                <span className="text-[10px] sm:text-[11px] text-amber-400 font-medium block uppercase tracking-wider">
+                  Admin Portal
                 </span>
               </div>
             </div>
 
             {/* Navigation links & Logout */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -332,7 +384,8 @@ export const AdminDashboard: React.FC = () => {
                 onClick={() => window.open('/verify', '_blank')}
               >
                 <Award className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
-                Verify Page
+                <span className="hidden sm:inline">Verify Page</span>
+                <span className="sm:hidden">Verify</span>
               </Button>
               <div className="h-5 w-px bg-slate-700 hidden sm:block" />
               <Button
@@ -350,25 +403,64 @@ export const AdminDashboard: React.FC = () => {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Action Header Card */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">
               Students & Certificates
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-slate-500 text-xs sm:text-sm mt-1">
               Manage student registrations, certificates, and verification records
             </p>
           </div>
 
-          <Button
-            onClick={handleOpenAdd}
-            className="bg-primary hover:bg-primary/90 text-white font-semibold shadow-md inline-flex items-center cursor-pointer text-sm px-5 py-2.5"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Student
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImportFile}
+              accept=".json"
+              className="hidden"
+            />
+            <Button
+              onClick={handleSyncRegistry}
+              variant="outline"
+              size="sm"
+              className="text-xs text-slate-700 hover:text-slate-900 border-slate-300 cursor-pointer"
+              title="Sync latest academy registry"
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1 text-primary" />
+              Sync
+            </Button>
+            <Button
+              onClick={handleExportData}
+              variant="outline"
+              size="sm"
+              className="text-xs text-slate-700 hover:text-slate-900 border-slate-300 cursor-pointer"
+              title="Download backup JSON file"
+            >
+              <Download className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+              Backup
+            </Button>
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              variant="outline"
+              size="sm"
+              className="text-xs text-slate-700 hover:text-slate-900 border-slate-300 cursor-pointer"
+              title="Import JSON backup"
+            >
+              <Upload className="w-3.5 h-3.5 mr-1 text-blue-600" />
+              Import
+            </Button>
+            <Button
+              onClick={handleOpenAdd}
+              className="bg-primary hover:bg-primary/90 text-white font-semibold shadow-md inline-flex items-center cursor-pointer text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Student
+            </Button>
+          </div>
         </div>
 
         {/* Search and Filters */}
@@ -403,8 +495,93 @@ export const AdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Students Table */}
-        <Card className="shadow-sm border-slate-200 overflow-hidden">
+        {/* Mobile View: Clean Cards */}
+        <div className="block md:hidden space-y-3">
+          {loading ? (
+            <Card className="p-8 text-center text-slate-500">
+              <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2 align-middle" />
+              Loading student records...
+            </Card>
+          ) : students.length === 0 ? (
+            <Card className="p-8 text-center text-slate-500">
+              <p className="text-base font-medium text-slate-700 mb-1">No students found</p>
+              <p className="text-xs text-slate-400">Click "Add Student" to create a record</p>
+            </Card>
+          ) : (
+            students.map((student) => (
+              <Card
+                key={student.id}
+                className={`p-4 border-slate-200 shadow-sm transition-all ${
+                  student.is_archived ? 'bg-slate-50 opacity-60' : 'bg-white'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base">{student.student_name}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">S/O, D/O: {student.father_name}</p>
+                  </div>
+                  {getStatusBadge(student.status, student.is_archived)}
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Registration</span>
+                    <span className="font-mono font-semibold text-slate-800 break-all text-xs">{student.registration_number}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Course</span>
+                    <span className="font-medium text-slate-800 text-xs">{student.course_name}</span>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400 font-mono">App: {student.application_number}</span>
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleOpenView(student)}
+                      className="h-8 w-8 text-slate-600 hover:text-primary hover:bg-primary/10"
+                      title="View Details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleOpenEdit(student)}
+                      className="h-8 w-8 text-slate-600 hover:text-amber-600 hover:bg-amber-50"
+                      title="Edit Student"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleToggleArchive(student)}
+                      className="h-8 w-8 text-slate-600 hover:text-blue-600 hover:bg-blue-50"
+                      title={student.is_archived ? "Restore Student" : "Archive Student"}
+                    >
+                      {student.is_archived ? <RotateCcw className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleOpenDelete(student)}
+                      className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                      title="Delete Permanently"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Full Table */}
+        <Card className="hidden md:block shadow-sm border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
@@ -429,7 +606,7 @@ export const AdminDashboard: React.FC = () => {
                     <td colSpan={5} className="py-12 text-center text-slate-500">
                       <p className="text-base font-medium text-slate-700 mb-1">No students found</p>
                       <p className="text-xs text-slate-400">
-                        {searchQuery ? 'Try adjusting your search query' : 'Click "Add New Student" to create your first record'}
+                        {searchQuery ? 'Try adjusting your search query' : 'Click "Add Student" to create your first record'}
                       </p>
                     </td>
                   </tr>
@@ -530,181 +707,205 @@ export const AdminDashboard: React.FC = () => {
       {/* ADD STUDENT DIALOG                                                        */}
       {/* ========================================================================= */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-slate-900">Add New Student</DialogTitle>
-            <DialogDescription className="text-slate-500 text-sm">
+        <DialogContent 
+          className="w-[95vw] sm:max-w-2xl max-h-[92vh] flex flex-col p-0 overflow-hidden rounded-2xl"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="p-4 sm:p-6 pb-3 border-b border-slate-100 bg-white z-10 shrink-0 text-left">
+            <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900">Add New Student</DialogTitle>
+            <DialogDescription className="text-slate-500 text-xs sm:text-sm">
               Enter student credentials, contact info, and course enrollment details
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleAddSubmit} className="space-y-4 py-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="student_name" className="text-xs font-semibold text-slate-700">
-                  Student Name *
-                </Label>
-                <Input
-                  id="student_name"
-                  placeholder="e.g. Aarav Sharma"
-                  value={formData.student_name}
-                  onChange={(e) => setFormData({ ...formData, student_name: e.target.value })}
-                  required
-                />
-              </div>
+          <form onSubmit={handleAddSubmit} className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="student_name" className="text-xs font-semibold text-slate-700">
+                    Student Name *
+                  </Label>
+                  <Input
+                    id="student_name"
+                    placeholder="e.g. Aarav Sharma"
+                    value={formData.student_name}
+                    onChange={(e) => setFormData({ ...formData, student_name: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="father_name" className="text-xs font-semibold text-slate-700">
-                  Father's Name *
-                </Label>
-                <Input
-                  id="father_name"
-                  placeholder="e.g. Ramesh Sharma"
-                  value={formData.father_name}
-                  onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="father_name" className="text-xs font-semibold text-slate-700">
+                    Father's Name *
+                  </Label>
+                  <Input
+                    id="father_name"
+                    placeholder="e.g. Ramesh Sharma"
+                    value={formData.father_name}
+                    onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="date_of_birth" className="text-xs font-semibold text-slate-700">
-                  Date of Birth (DOB) *
-                </Label>
-                <Input
-                  id="date_of_birth"
-                  type="date"
-                  value={formData.date_of_birth}
-                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="date_of_birth" className="text-xs font-semibold text-slate-700">
+                    Date of Birth (DOB) *
+                  </Label>
+                  <Input
+                    id="date_of_birth"
+                    type="date"
+                    value={formData.date_of_birth}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="mobile_number" className="text-xs font-semibold text-slate-700">
-                  Mobile Number *
-                </Label>
-                <Input
-                  id="mobile_number"
-                  placeholder="e.g. 9876543210"
-                  value={formData.mobile_number}
-                  onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="mobile_number" className="text-xs font-semibold text-slate-700">
+                    Mobile Number *
+                  </Label>
+                  <Input
+                    id="mobile_number"
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="e.g. 9876543210"
+                    value={formData.mobile_number}
+                    onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="email" className="text-xs font-semibold text-slate-700">
-                  Email Address (Optional)
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="student@example.com"
-                  value={formData.email || ''}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="email" className="text-xs font-semibold text-slate-700">
+                    Email Address (Optional)
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="student@example.com"
+                    value={formData.email || ''}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="registration_number" className="text-xs font-semibold text-slate-700">
-                  Registration Number * (Unique)
-                </Label>
-                <Input
-                  id="registration_number"
-                  placeholder="e.g. IAA-2026-100"
-                  value={formData.registration_number}
-                  onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
-                  className="font-mono text-sm"
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="registration_number" className="text-xs font-semibold text-slate-700">
+                    Registration Number * (Unique)
+                  </Label>
+                  <Input
+                    id="registration_number"
+                    placeholder="e.g. IAA-2026-100"
+                    value={formData.registration_number}
+                    onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
+                    className="font-mono text-sm"
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="application_number" className="text-xs font-semibold text-slate-700">
-                  Application Number * (Unique)
-                </Label>
-                <Input
-                  id="application_number"
-                  placeholder="e.g. APP-2026-100"
-                  value={formData.application_number}
-                  onChange={(e) => setFormData({ ...formData, application_number: e.target.value })}
-                  className="font-mono text-sm"
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="application_number" className="text-xs font-semibold text-slate-700">
+                    Application Number * (Unique)
+                  </Label>
+                  <Input
+                    id="application_number"
+                    placeholder="e.g. APP-2026-100"
+                    value={formData.application_number}
+                    onChange={(e) => setFormData({ ...formData, application_number: e.target.value })}
+                    className="font-mono text-sm"
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="course_name" className="text-xs font-semibold text-slate-700">
-                  Course Name *
-                </Label>
-                <Input
-                  id="course_name"
-                  placeholder="e.g. Commercial Pilot License (CPL)"
-                  value={formData.course_name}
-                  onChange={(e) => setFormData({ ...formData, course_name: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="course_name" className="text-xs font-semibold text-slate-700">
+                    Course Name *
+                  </Label>
+                  <Input
+                    id="course_name"
+                    placeholder="e.g. Commercial Pilot License (CPL)"
+                    value={formData.course_name}
+                    onChange={(e) => setFormData({ ...formData, course_name: e.target.value })}
+                    required
+                  />
+                  {/* Quick course selectors */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {POPULAR_COURSES.map((course) => (
+                      <button
+                        type="button"
+                        key={course}
+                        onClick={() => setFormData({ ...formData, course_name: course })}
+                        className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${
+                          formData.course_name === course
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                        }`}
+                      >
+                        {course}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="admission_date" className="text-xs font-semibold text-slate-700">
-                  Admission Date *
-                </Label>
-                <Input
-                  id="admission_date"
-                  type="date"
-                  value={formData.admission_date}
-                  onChange={(e) => setFormData({ ...formData, admission_date: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="admission_date" className="text-xs font-semibold text-slate-700">
+                    Admission Date *
+                  </Label>
+                  <Input
+                    id="admission_date"
+                    type="date"
+                    value={formData.admission_date}
+                    onChange={(e) => setFormData({ ...formData, admission_date: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="status" className="text-xs font-semibold text-slate-700">
-                  Status *
-                </Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(val: any) => setFormData({ ...formData, status: val })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Completed">Completed (Certificate Issued)</SelectItem>
-                    <SelectItem value="Active">Active (Currently Enrolled)</SelectItem>
-                    <SelectItem value="Discontinued">Discontinued</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="status" className="text-xs font-semibold text-slate-700">
+                    Status *
+                  </Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(val: any) => setFormData({ ...formData, status: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Completed">Completed (Certificate Issued)</SelectItem>
+                      <SelectItem value="Active">Active (Currently Enrolled)</SelectItem>
+                      <SelectItem value="Discontinued">Discontinued</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="course_start_date" className="text-xs font-semibold text-slate-700">
-                  Course Start Date *
-                </Label>
-                <Input
-                  id="course_start_date"
-                  type="date"
-                  value={formData.course_start_date}
-                  onChange={(e) => setFormData({ ...formData, course_start_date: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="course_start_date" className="text-xs font-semibold text-slate-700">
+                    Course Start Date *
+                  </Label>
+                  <Input
+                    id="course_start_date"
+                    type="date"
+                    value={formData.course_start_date}
+                    onChange={(e) => setFormData({ ...formData, course_start_date: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="course_end_date" className="text-xs font-semibold text-slate-700">
-                  Course End Date (Optional)
-                </Label>
-                <Input
-                  id="course_end_date"
-                  type="date"
-                  value={formData.course_end_date || ''}
-                  onChange={(e) => setFormData({ ...formData, course_end_date: e.target.value })}
-                />
+                <div className="space-y-1.5">
+                  <Label htmlFor="course_end_date" className="text-xs font-semibold text-slate-700">
+                    Course End Date (Optional)
+                  </Label>
+                  <Input
+                    id="course_end_date"
+                    type="date"
+                    value={formData.course_end_date || ''}
+                    onChange={(e) => setFormData({ ...formData, course_end_date: e.target.value })}
+                  />
+                </div>
               </div>
             </div>
 
-            <DialogFooter className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+            <DialogFooter className="p-4 sm:p-6 pt-3 border-t border-slate-100 bg-slate-50 z-10 shrink-0 flex items-center justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -725,139 +926,163 @@ export const AdminDashboard: React.FC = () => {
       {/* EDIT STUDENT DIALOG                                                       */}
       {/* ========================================================================= */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-slate-900">Edit Student Record</DialogTitle>
-            <DialogDescription className="text-slate-500 text-sm">
+        <DialogContent 
+          className="w-[95vw] sm:max-w-2xl max-h-[92vh] flex flex-col p-0 overflow-hidden rounded-2xl"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="p-4 sm:p-6 pb-3 border-b border-slate-100 bg-white z-10 shrink-0 text-left">
+            <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900">Edit Student Record</DialogTitle>
+            <DialogDescription className="text-slate-500 text-xs sm:text-sm">
               Update details for {formData.student_name}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleEditSubmit} className="space-y-4 py-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Student Name *</Label>
-                <Input
-                  value={formData.student_name}
-                  onChange={(e) => setFormData({ ...formData, student_name: e.target.value })}
-                  required
-                />
-              </div>
+          <form onSubmit={handleEditSubmit} className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Student Name *</Label>
+                  <Input
+                    value={formData.student_name}
+                    onChange={(e) => setFormData({ ...formData, student_name: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Father's Name *</Label>
-                <Input
-                  value={formData.father_name}
-                  onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Father's Name *</Label>
+                  <Input
+                    value={formData.father_name}
+                    onChange={(e) => setFormData({ ...formData, father_name: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Date of Birth (DOB) *</Label>
-                <Input
-                  type="date"
-                  value={formData.date_of_birth}
-                  onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Date of Birth (DOB) *</Label>
+                  <Input
+                    type="date"
+                    value={formData.date_of_birth}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Mobile Number *</Label>
-                <Input
-                  value={formData.mobile_number}
-                  onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Mobile Number *</Label>
+                  <Input
+                    type="tel"
+                    inputMode="tel"
+                    value={formData.mobile_number}
+                    onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-semibold text-slate-700">Email Address</Label>
-                <Input
-                  type="email"
-                  value={formData.email || ''}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-semibold text-slate-700">Email Address</Label>
+                  <Input
+                    type="email"
+                    value={formData.email || ''}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Registration Number *</Label>
-                <Input
-                  value={formData.registration_number}
-                  onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
-                  className="font-mono text-sm"
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Registration Number *</Label>
+                  <Input
+                    value={formData.registration_number}
+                    onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
+                    className="font-mono text-sm"
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Application Number *</Label>
-                <Input
-                  value={formData.application_number}
-                  onChange={(e) => setFormData({ ...formData, application_number: e.target.value })}
-                  className="font-mono text-sm"
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Application Number *</Label>
+                  <Input
+                    value={formData.application_number}
+                    onChange={(e) => setFormData({ ...formData, application_number: e.target.value })}
+                    className="font-mono text-sm"
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-semibold text-slate-700">Course Name *</Label>
-                <Input
-                  value={formData.course_name}
-                  onChange={(e) => setFormData({ ...formData, course_name: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-semibold text-slate-700">Course Name *</Label>
+                  <Input
+                    value={formData.course_name}
+                    onChange={(e) => setFormData({ ...formData, course_name: e.target.value })}
+                    required
+                  />
+                  {/* Quick course selectors */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {POPULAR_COURSES.map((course) => (
+                      <button
+                        type="button"
+                        key={course}
+                        onClick={() => setFormData({ ...formData, course_name: course })}
+                        className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${
+                          formData.course_name === course
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                        }`}
+                      >
+                        {course}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Admission Date *</Label>
-                <Input
-                  type="date"
-                  value={formData.admission_date}
-                  onChange={(e) => setFormData({ ...formData, admission_date: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Admission Date *</Label>
+                  <Input
+                    type="date"
+                    value={formData.admission_date}
+                    onChange={(e) => setFormData({ ...formData, admission_date: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Status *</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(val: any) => setFormData({ ...formData, status: val })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Completed">Completed (Certificate Issued)</SelectItem>
-                    <SelectItem value="Active">Active (Currently Enrolled)</SelectItem>
-                    <SelectItem value="Discontinued">Discontinued</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Status *</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(val: any) => setFormData({ ...formData, status: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Completed">Completed (Certificate Issued)</SelectItem>
+                      <SelectItem value="Active">Active (Currently Enrolled)</SelectItem>
+                      <SelectItem value="Discontinued">Discontinued</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Course Start Date *</Label>
-                <Input
-                  type="date"
-                  value={formData.course_start_date}
-                  onChange={(e) => setFormData({ ...formData, course_start_date: e.target.value })}
-                  required
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Course Start Date *</Label>
+                  <Input
+                    type="date"
+                    value={formData.course_start_date}
+                    onChange={(e) => setFormData({ ...formData, course_start_date: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Course End Date</Label>
-                <Input
-                  type="date"
-                  value={formData.course_end_date || ''}
-                  onChange={(e) => setFormData({ ...formData, course_end_date: e.target.value })}
-                />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Course End Date</Label>
+                  <Input
+                    type="date"
+                    value={formData.course_end_date || ''}
+                    onChange={(e) => setFormData({ ...formData, course_end_date: e.target.value })}
+                  />
+                </div>
               </div>
             </div>
 
-            <DialogFooter className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+            <DialogFooter className="p-4 sm:p-6 pt-3 border-t border-slate-100 bg-slate-50 z-10 shrink-0 flex items-center justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
