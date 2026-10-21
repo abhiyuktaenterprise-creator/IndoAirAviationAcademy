@@ -148,10 +148,26 @@ export const authService = {
     if (isSupabaseConfigured) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         (_event, session) => {
+          // If we already have an active master admin session in localStorage, keep it active
+          const stored = localStorage.getItem(LOCAL_ADMIN_KEY);
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              if (parsed?.user?.email?.toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase()) {
+                callback(parsed);
+                return;
+              }
+            } catch {
+              // Ignore
+            }
+          }
+
           if (session) {
             localStorage.setItem(LOCAL_ADMIN_KEY, JSON.stringify(session));
+            callback(session);
+          } else if (!stored) {
+            callback(null);
           }
-          callback(session);
         }
       );
       return {

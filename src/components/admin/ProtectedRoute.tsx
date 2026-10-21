@@ -8,8 +8,17 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(() => {
+    try {
+      const stored = localStorage.getItem('iaa_admin_session_auth');
+      return stored ? (JSON.parse(stored) as Session) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    return !localStorage.getItem('iaa_admin_session_auth');
+  });
 
   useEffect(() => {
     let mounted = true;

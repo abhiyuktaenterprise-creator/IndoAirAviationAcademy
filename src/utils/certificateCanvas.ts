@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import defaultSignatureSrc from '@/assets/ss-rajpoot-signature.png';
 
 export interface CertificateData {
   studentName: string;
@@ -13,7 +14,8 @@ export interface CertificateData {
 export const renderLuxuryCertificate = async (
   canvas: HTMLCanvasElement,
   data: CertificateData,
-  logoSrc: string
+  logoSrc: string,
+  signatureSrc: string = defaultSignatureSrc
 ): Promise<void> => {
   const W = 2400;
   const H = 1700;
@@ -315,33 +317,62 @@ export const renderLuxuryCertificate = async (
     1105
   );
 
-  // 7. Signatures & Official Gold Medallion Seal
+  // 7. Signatures, Gold Seal & Verification QR Code
   const sigY = 1250;
 
-  // Left Signature: R. Sharma
+  // Left: Authorized Signatory - S S Rajpoot (CEO & Executive Director)
   const sigLeftX = 240;
-  ctx.fillStyle = '#142D5F';
-  ctx.font = 'italic 36px "Times New Roman", Georgia, serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('R. Sharma', sigLeftX + 30, sigY + 30);
+  const lineMid = sigLeftX + 170;
 
+  // Try loading professional signature image
+  let sigDrawn = false;
+  if (signatureSrc) {
+    try {
+      const sigImg = await loadImg(signatureSrc);
+      const targetW = 300;
+      const targetH = (sigImg.height * targetW) / sigImg.width;
+      ctx.drawImage(sigImg, sigLeftX + 20, sigY - 32, targetW, targetH);
+      sigDrawn = true;
+    } catch (err) {
+      console.warn('Failed to load signature image, using fallback calligraphy stroke', err);
+    }
+  }
+
+  // Fallback if image failed to load
+  if (!sigDrawn) {
+    ctx.fillStyle = '#0F2552';
+    ctx.font = 'italic bold 36px "Brush Script MT", "Snell Roundhand", cursive, "Times New Roman"';
+    ctx.textAlign = 'center';
+    ctx.fillText('S. S. Rajpoot', lineMid, sigY + 30);
+    // Decorative ink underline swoop
+    ctx.strokeStyle = '#0F2552';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(sigLeftX + 30, sigY + 42);
+    ctx.quadraticCurveTo(lineMid, sigY + 54, sigLeftX + 310, sigY + 38);
+    ctx.stroke();
+  }
+
+  // Signature horizontal line
   ctx.strokeStyle = C_SLATE_MUTED;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(sigLeftX, sigY + 55);
-  ctx.lineTo(sigLeftX + 280, sigY + 55);
+  ctx.lineTo(sigLeftX + 340, sigY + 55);
   ctx.stroke();
 
+  // Signatory Title & Designation
   ctx.fillStyle = C_SLATE_DARK;
   ctx.font = 'bold 18px Arial, sans-serif';
-  ctx.fillText('R. SHARMA', sigLeftX + 40, sigY + 82);
+  ctx.textAlign = 'center';
+  ctx.fillText('S S RAJPOOT', lineMid, sigY + 82);
 
-  ctx.fillStyle = C_SLATE_MUTED;
-  ctx.font = '14px Arial, sans-serif';
-  ctx.fillText('Admission Coordinator, IAA', sigLeftX + 15, sigY + 104);
+  ctx.fillStyle = C_GOLD_DARK;
+  ctx.font = 'bold 14px Arial, sans-serif';
+  ctx.fillText('Company CEO & Executive Director', lineMid, sigY + 104);
 
-  // Center Gold Scalloped Seal
-  const sealCx = W / 2 - 120;
+  // Center: Official Luxury Gold Embossed Academy Seal (Centered at W / 2)
+  const sealCx = W / 2;
   const sealCy = sigY + 40;
   const sealR = 75;
 
@@ -388,32 +419,11 @@ export const renderLuxuryCertificate = async (
   ctx.font = 'bold 12px Arial, sans-serif';
   ctx.fillText('INDORE', sealCx, sealCy + 44);
 
-  // Right Signature: S S Rajpoot (CEO)
-  const sigRightX = W / 2 + 100;
-  ctx.fillStyle = '#142D5F';
-  ctx.font = 'italic 36px "Times New Roman", Georgia, serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('S S Rajpoot', sigRightX + 50, sigY + 30);
-
-  ctx.strokeStyle = C_SLATE_MUTED;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(sigRightX, sigY + 55);
-  ctx.lineTo(sigRightX + 320, sigY + 55);
-  ctx.stroke();
-
-  ctx.fillStyle = C_SLATE_DARK;
-  ctx.font = 'bold 18px Arial, sans-serif';
-  ctx.fillText('S S RAJPOOT', sigRightX + 75, sigY + 82);
-
-  ctx.fillStyle = C_GOLD_DARK;
-  ctx.font = 'bold 14px Arial, sans-serif';
-  ctx.fillText('Company CEO & Executive Director', sigRightX + 40, sigY + 104);
-
-  // Far Right: Verification QR Code
-  const qrX = W - 430;
+  // Right: Verification QR Code with Domain
+  const qrX = W - 450;
   const qrY = sigY - 45;
   const qrW = 170;
+  const qrMid = qrX + (qrW + 16) / 2;
 
   try {
     const qrDataUrl = await QRCode.toDataURL(
@@ -440,11 +450,11 @@ export const renderLuxuryCertificate = async (
   ctx.fillStyle = C_NAVY_MID;
   ctx.font = 'bold 13px Arial, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('SCAN TO VERIFY RECORD', qrX + qrW / 2 + 8, qrY + qrW + 36);
+  ctx.fillText('SCAN TO VERIFY RECORD', qrMid, qrY + qrW + 36);
 
   ctx.fillStyle = C_GOLD_DARK;
   ctx.font = 'bold 14px Arial, sans-serif';
-  ctx.fillText('www.indoaviationacademy.com', qrX + qrW / 2 + 8, qrY + qrW + 56);
+  ctx.fillText('www.indoaviationacademy.com', qrMid, qrY + qrW + 56);
 
   // 8. Bottom Security Ribbon
   const ribbonY = H - 90;

@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Mail, ShieldAlert, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ShieldAlert, ArrowLeft, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import logoImage from '@/assets/indo-air-aviation-logo-removebg-preview.png';
 
 export const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ export const AdminLogin: React.FC = () => {
       }
 
       toast.success('Welcome back!', { description: 'Authenticated successfully.' });
+      setLoading(false);
       navigate('/admin', { replace: true });
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred during sign in.');
@@ -124,13 +126,26 @@ export const AdminLogin: React.FC = () => {
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-9 bg-slate-800/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-primary focus:ring-1 focus:ring-primary"
+                  className="pl-9 pr-10 bg-slate-800/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-primary focus:ring-1 focus:ring-primary"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-200 transition-colors focus:outline-none cursor-pointer"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
 
