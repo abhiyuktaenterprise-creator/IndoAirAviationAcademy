@@ -176,15 +176,15 @@ export const FAQSection: React.FC = () => {
 
           <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
             <a
-              href="tel:+918233787629"
+              href="tel:+918858453069"
               className="inline-flex items-center space-x-2 bg-white hover:bg-slate-100 text-slate-950 text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-md transition-all transform hover:scale-105"
             >
               <Phone className="w-4 h-4 text-primary" />
-              <span>+91 8233787629</span>
+              <span>+91 88584 53069</span>
             </a>
 
             <a
-              href="https://wa.me/918233787629?text=Hi%20Indo%20Air%20Aviation!%20I%20have%20questions%20about%20aviation%20training%20courses."
+              href="https://wa.me/918858453069?text=Hi%20Indo%20Air%20Aviation!%20I%20have%20questions%20about%20aviation%20training%20courses."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-2 bg-[#25D366] hover:bg-[#20BA5A] text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-md transition-all transform hover:scale-105"

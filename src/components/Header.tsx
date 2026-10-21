@@ -134,11 +134,11 @@ const Header = () => {
 
             {/* Direct Phone Call Button */}
             <a 
-              href="tel:+918233787629" 
+              href="tel:+918858453069" 
               className="inline-flex items-center space-x-1.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs px-3.5 py-2 rounded-full border border-white/10 shadow-md transition-all transform hover:scale-105"
             >
               <Phone className="w-3.5 h-3.5 text-amber-400" />
-              <span>+91 8233787629</span>
+              <span>+91 88584 53069</span>
             </a>
           </div>
 
@@ -221,11 +221,11 @@ const Header = () => {
               {/* Call Admissions Footer in Drawer */}
               <div className="pt-3 mt-2 border-t border-white/10 flex items-center justify-between">
                 <a 
-                  href="tel:+918233787629" 
+                  href="tel:+918858453069" 
                   className="flex items-center text-xs text-slate-300 font-medium hover:text-white"
                 >
                   <Phone className="w-3.5 h-3.5 text-amber-400 mr-1.5" />
-                  +91-8233787629
+                  +91 88584 53069
                 </a>
                 <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full">
                   ● Admissions Open

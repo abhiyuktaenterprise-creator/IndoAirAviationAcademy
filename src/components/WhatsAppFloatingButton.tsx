@@ -3,7 +3,7 @@ import { MessageCircle, X } from 'lucide-react';
 
 export const WhatsAppFloatingButton: React.FC = () => {
   const [showTooltip, setShowTooltip] = useState(true);
-  const phoneNumber = "918233787629";
+  const phoneNumber = "918858453069";
   const defaultMessage = encodeURIComponent(
     "Hi Indo Air Aviation Academy! I am interested in aviation training courses and would like to speak to a counselor."
   );
