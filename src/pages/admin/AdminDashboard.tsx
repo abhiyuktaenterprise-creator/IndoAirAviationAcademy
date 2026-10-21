@@ -54,6 +54,9 @@ import {
   Download,
   Upload,
   RefreshCw,
+  Camera,
+  ImageIcon,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoImage from '@/assets/indo-air-aviation-logo-removebg-preview.png';
@@ -67,6 +70,46 @@ const POPULAR_COURSES = [
   'Aviation Security & Safety',
   'Customer Service Executive',
 ];
+
+// Helper to compress uploaded student photo to compact lightweight Base64
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxSize = 400; // Passport photo optimal dimension
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // High quality compact JPEG (~25KB)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -86,6 +129,8 @@ export const AdminDashboard: React.FC = () => {
   // Active student targets
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputAddRef = useRef<HTMLInputElement>(null);
+  const photoInputEditRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const initialFormState: NewStudentInput = {
@@ -101,6 +146,7 @@ export const AdminDashboard: React.FC = () => {
     course_start_date: '',
     course_end_date: '',
     status: 'Completed',
+    photo_url: null,
   };
 
   const [formData, setFormData] = useState<NewStudentInput>(initialFormState);
@@ -197,8 +243,34 @@ export const AdminDashboard: React.FC = () => {
       course_start_date: student.course_start_date,
       course_end_date: student.course_end_date || '',
       status: student.status,
+      photo_url: student.photo_url || null,
     });
     setIsEditOpen(true);
+  };
+
+  // Upload Photo handler
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file (JPG or PNG)');
+      return;
+    }
+    try {
+      toast.loading('Processing photo...', { id: 'photo-upload' });
+      const compressedBase64 = await compressImage(file);
+      setFormData((prev) => ({ ...prev, photo_url: compressedBase64 }));
+      toast.success('Photo attached successfully!', { id: 'photo-upload' });
+    } catch {
+      toast.error('Failed to process photo', { id: 'photo-upload' });
+    }
+    e.target.value = '';
+  };
+
+  // Remove Photo handler
+  const handleRemovePhoto = () => {
+    setFormData((prev) => ({ ...prev, photo_url: null }));
+    toast.info('Photo removed');
   };
 
   // Open View modal
@@ -516,9 +588,22 @@ export const AdminDashboard: React.FC = () => {
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-base">{student.student_name}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">S/O, D/O: {student.father_name}</p>
+                  <div className="flex items-center space-x-3 min-w-0">
+                    {student.photo_url ? (
+                      <img
+                        src={student.photo_url}
+                        alt={student.student_name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-slate-200 shrink-0 shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-400">
+                        <User className="w-6 h-6" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-slate-900 text-base truncate">{student.student_name}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5 truncate">S/O, D/O: {student.father_name}</p>
+                    </div>
                   </div>
                   {getStatusBadge(student.status, student.is_archived)}
                 </div>
@@ -620,9 +705,24 @@ export const AdminDashboard: React.FC = () => {
                     >
                       {/* Name & Father Name */}
                       <td className="py-3.5 px-4 sm:px-6">
-                        <div className="font-semibold text-slate-900">{student.student_name}</div>
-                        <div className="text-xs text-slate-500 flex items-center mt-0.5">
-                          <span>S/O, D/O: {student.father_name}</span>
+                        <div className="flex items-center space-x-3">
+                          {student.photo_url ? (
+                            <img
+                              src={student.photo_url}
+                              alt={student.student_name}
+                              className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0 shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-400">
+                              <User className="w-5 h-5" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-slate-900">{student.student_name}</div>
+                            <div className="text-xs text-slate-500 flex items-center mt-0.5">
+                              <span>S/O, D/O: {student.father_name}</span>
+                            </div>
+                          </div>
                         </div>
                       </td>
 
@@ -721,6 +821,76 @@ export const AdminDashboard: React.FC = () => {
           <form onSubmit={handleAddSubmit} className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Optional Student Photo Upload */}
+                <div className="sm:col-span-2 flex items-center space-x-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <input
+                    type="file"
+                    ref={photoInputAddRef}
+                    onChange={handlePhotoUpload}
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    className="hidden"
+                  />
+                  {formData.photo_url ? (
+                    <div className="relative shrink-0">
+                      <img
+                        src={formData.photo_url}
+                        alt="Preview"
+                        className="w-16 h-20 rounded-lg object-cover border-2 border-primary shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemovePhoto}
+                        className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 shadow hover:bg-red-700 cursor-pointer"
+                        title="Remove Photo"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => photoInputAddRef.current?.click()}
+                      className="w-16 h-20 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-primary hover:text-primary cursor-pointer transition-colors bg-white shrink-0"
+                    >
+                      <Camera className="w-6 h-6 mb-1" />
+                      <span className="text-[10px] font-semibold">Photo</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-800">
+                      Student Photo <span className="text-slate-400 font-normal">(Optional)</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {formData.photo_url
+                        ? 'Photo attached. Will be shown on verified certificate.'
+                        : 'Upload passport photo for student verification (PNG/JPG).'}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => photoInputAddRef.current?.click()}
+                        className="text-xs h-7 px-2.5 cursor-pointer"
+                      >
+                        <Upload className="w-3 h-3 mr-1" />
+                        {formData.photo_url ? 'Change Photo' : 'Upload Photo'}
+                      </Button>
+                      {formData.photo_url && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemovePhoto}
+                          className="text-xs h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <Label htmlFor="student_name" className="text-xs font-semibold text-slate-700">
                     Student Name *
@@ -940,6 +1110,76 @@ export const AdminDashboard: React.FC = () => {
           <form onSubmit={handleEditSubmit} className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Optional Student Photo Upload in Edit */}
+                <div className="sm:col-span-2 flex items-center space-x-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <input
+                    type="file"
+                    ref={photoInputEditRef}
+                    onChange={handlePhotoUpload}
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    className="hidden"
+                  />
+                  {formData.photo_url ? (
+                    <div className="relative shrink-0">
+                      <img
+                        src={formData.photo_url}
+                        alt="Preview"
+                        className="w-16 h-20 rounded-lg object-cover border-2 border-primary shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemovePhoto}
+                        className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 shadow hover:bg-red-700 cursor-pointer"
+                        title="Remove Photo"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => photoInputEditRef.current?.click()}
+                      className="w-16 h-20 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-primary hover:text-primary cursor-pointer transition-colors bg-white shrink-0"
+                    >
+                      <Camera className="w-6 h-6 mb-1" />
+                      <span className="text-[10px] font-semibold">Photo</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-800">
+                      Student Photo <span className="text-slate-400 font-normal">(Optional)</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {formData.photo_url
+                        ? 'Photo attached. Will be shown on verified certificate.'
+                        : 'Upload passport photo for student verification (PNG/JPG).'}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => photoInputEditRef.current?.click()}
+                        className="text-xs h-7 px-2.5 cursor-pointer"
+                      >
+                        <Upload className="w-3 h-3 mr-1" />
+                        {formData.photo_url ? 'Change Photo' : 'Upload Photo'}
+                      </Button>
+                      {formData.photo_url && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemovePhoto}
+                          className="text-xs h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-slate-700">Student Name *</Label>
                   <Input
@@ -1117,6 +1357,16 @@ export const AdminDashboard: React.FC = () => {
           {selectedStudent && (
             <div className="space-y-4 py-2">
               <div className="bg-slate-50 p-4 rounded-lg space-y-3 border border-slate-100 text-sm">
+                {selectedStudent.photo_url && (
+                  <div className="flex justify-center pb-2">
+                    <img
+                      src={selectedStudent.photo_url}
+                      alt={selectedStudent.student_name}
+                      className="w-24 h-28 object-cover rounded-lg border-2 border-slate-300 shadow-sm"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <span className="text-xs text-slate-500 uppercase font-semibold block">Full Name</span>
                   <span className="font-bold text-slate-900 text-base">{selectedStudent.student_name}</span>

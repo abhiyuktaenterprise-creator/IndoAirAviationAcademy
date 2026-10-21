@@ -15,6 +15,7 @@ export interface Student {
   course_end_date?: string | null;
   status: 'Active' | 'Completed' | 'Discontinued';
   is_archived: boolean;
+  photo_url?: string | null; // Optional base64 or URL
   created_at?: string;
   updated_at?: string;
 }
@@ -32,6 +33,7 @@ export interface PublicVerificationResult {
   course_start_date: string;
   course_end_date?: string | null;
   status: string;
+  photo_url?: string | null;
 }
 
 const LOCAL_STORAGE_KEY = 'iaa_students_local_registry';
@@ -89,6 +91,7 @@ const DEFAULT_STUDENTS: Student[] = [
     course_end_date: '2025-12-15',
     status: 'Completed',
     is_archived: false,
+    photo_url: '/sample-student-photo.jpg',
     created_at: new Date('2024-01-10').toISOString(),
     updated_at: new Date('2024-01-10').toISOString(),
   },
@@ -102,11 +105,14 @@ const getLocalStudents = (): Student[] => {
     // Ensure all DEFAULT_STUDENTS are merged so any device opening the app gets latest registry
     let hasChanges = false;
     DEFAULT_STUDENTS.forEach((defStudent) => {
-      const exists = list.some(
+      const idx = list.findIndex(
         (s) => s.registration_number.toLowerCase() === defStudent.registration_number.toLowerCase()
       );
-      if (!exists) {
+      if (idx === -1) {
         list.push(defStudent);
+        hasChanges = true;
+      } else if (defStudent.photo_url && !list[idx].photo_url) {
+        list[idx].photo_url = defStudent.photo_url;
         hasChanges = true;
       }
     });
@@ -196,6 +202,7 @@ export const studentService = {
       email: student.email?.trim() || null,
       course_name: student.course_name.trim(),
       is_archived: student.is_archived ?? false,
+      photo_url: student.photo_url || null,
     };
 
     if (isSupabaseConfigured) {
@@ -398,6 +405,7 @@ export const studentService = {
         course_start_date: match.course_start_date,
         course_end_date: match.course_end_date,
         status: match.status,
+        photo_url: match.photo_url || null,
       };
       return { data: publicResult, verified: true, error: null };
     }

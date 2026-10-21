@@ -242,80 +242,99 @@ export const StudentVerification: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Details Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-slate-50/70 p-4 sm:p-6 rounded-xl border border-slate-100">
-                  <div>
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                      Student Name
-                    </span>
-                    <span className="text-slate-900 font-bold text-base sm:text-lg mt-0.5 block">
-                      {verifiedResult.student_name}
-                    </span>
-                  </div>
+                {/* Details Grid & Optional Student Photo */}
+                <div className="flex flex-col sm:flex-row gap-6 bg-slate-50/70 p-4 sm:p-6 rounded-xl border border-slate-100 items-start">
+                  {/* Optional Student Passport Photo */}
+                  {verifiedResult.photo_url && (
+                    <div className="shrink-0 flex flex-col items-center mx-auto sm:mx-0">
+                      <div className="w-28 h-36 sm:w-32 sm:h-40 rounded-lg overflow-hidden border-2 border-slate-300 shadow-md bg-white p-1">
+                        <img
+                          src={verifiedResult.photo_url}
+                          alt={verifiedResult.student_name}
+                          className="w-full h-full object-cover rounded"
+                        />
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1.5">
+                        Student Photo
+                      </span>
+                    </div>
+                  )}
 
-                  <div>
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                      Father's Name
-                    </span>
-                    <span className="text-slate-800 font-semibold text-base mt-0.5 block">
-                      {verifiedResult.father_name}
-                    </span>
-                  </div>
+                  {/* Information Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm flex-1 w-full">
+                    <div>
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        Student Name
+                      </span>
+                      <span className="text-slate-900 font-bold text-base sm:text-lg mt-0.5 block">
+                        {verifiedResult.student_name}
+                      </span>
+                    </div>
 
-                  <div className="sm:col-span-2 pt-2 border-t border-slate-200/60">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                      Registration Number
-                    </span>
-                    <span className="text-slate-900 font-mono font-bold text-base mt-0.5 block">
-                      {verifiedResult.registration_number}
-                    </span>
-                  </div>
+                    <div>
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        Father's Name
+                      </span>
+                      <span className="text-slate-800 font-semibold text-base mt-0.5 block">
+                        {verifiedResult.father_name}
+                      </span>
+                    </div>
 
-                  <div className="sm:col-span-2 pt-2 border-t border-slate-200/60">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                      Course Enrolled
-                    </span>
-                    <span className="text-slate-900 font-bold text-base mt-0.5 block">
-                      {verifiedResult.course_name}
-                    </span>
-                  </div>
+                    <div className="sm:col-span-2 pt-2 border-t border-slate-200/60">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        Registration Number
+                      </span>
+                      <span className="text-slate-900 font-mono font-bold text-base mt-0.5 block">
+                        {verifiedResult.registration_number}
+                      </span>
+                    </div>
 
-                  <div className="pt-2 border-t border-slate-200/60">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                      Admission Date
-                    </span>
-                    <span className="text-slate-700 font-medium text-sm mt-0.5 block">
-                      {verifiedResult.admission_date}
-                    </span>
-                  </div>
+                    <div className="sm:col-span-2 pt-2 border-t border-slate-200/60">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        Course Enrolled
+                      </span>
+                      <span className="text-slate-900 font-bold text-base mt-0.5 block">
+                        {verifiedResult.course_name}
+                      </span>
+                    </div>
 
-                  <div className="pt-2 border-t border-slate-200/60">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                      Status
-                    </span>
-                    <span className="inline-block mt-1">
-                      <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
-                        {verifiedResult.status}
-                      </Badge>
-                    </span>
-                  </div>
+                    <div className="pt-2 border-t border-slate-200/60">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        Admission Date
+                      </span>
+                      <span className="text-slate-700 font-medium text-sm mt-0.5 block">
+                        {verifiedResult.admission_date}
+                      </span>
+                    </div>
 
-                  <div className="pt-2 border-t border-slate-200/60">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                      Course Start Date
-                    </span>
-                    <span className="text-slate-700 font-medium text-sm mt-0.5 block">
-                      {verifiedResult.course_start_date}
-                    </span>
-                  </div>
+                    <div className="pt-2 border-t border-slate-200/60">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        Status
+                      </span>
+                      <span className="inline-block mt-1">
+                        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+                          {verifiedResult.status}
+                        </Badge>
+                      </span>
+                    </div>
 
-                  <div className="pt-2 border-t border-slate-200/60">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                      Course End Date
-                    </span>
-                    <span className="text-slate-700 font-medium text-sm mt-0.5 block">
-                      {verifiedResult.course_end_date || 'Course in Progress'}
-                    </span>
+                    <div className="pt-2 border-t border-slate-200/60">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        Course Start Date
+                      </span>
+                      <span className="text-slate-700 font-medium text-sm mt-0.5 block">
+                        {verifiedResult.course_start_date}
+                      </span>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200/60">
+                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                        Course End Date
+                      </span>
+                      <span className="text-slate-700 font-medium text-sm mt-0.5 block">
+                        {verifiedResult.course_end_date || 'Course in Progress'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
