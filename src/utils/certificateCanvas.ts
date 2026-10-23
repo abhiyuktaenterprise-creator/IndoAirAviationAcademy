@@ -3,6 +3,7 @@ import defaultSignatureSrc from '@/assets/ss-rajpoot-signature.png';
 
 export interface CertificateData {
   studentName: string;
+  fatherName?: string;
   registrationNumber: string;
   courseName: string;
   duration?: string;
@@ -180,16 +181,16 @@ export const renderLuxuryCertificate = async (
 
   // 4. Preamble & Student Name
   ctx.fillStyle = C_SLATE_MUTED;
-  ctx.font = 'italic 25px "Times New Roman", Georgia, serif';
+  ctx.font = 'italic 24px "Times New Roman", Georgia, serif';
   ctx.fillText(
     'This is to officially certify that the candidate whose particulars appear below',
     W / 2,
-    490
+    485
   );
   ctx.fillText(
     'has been formally admitted and registered with Indo Air Aviation Academy.',
     W / 2,
-    525
+    518
   );
 
   // Candidate Name
@@ -197,23 +198,38 @@ export const renderLuxuryCertificate = async (
   const displayName = rawName.startsWith('MR.') || rawName.startsWith('MS.') ? rawName : `MR. ${rawName}`;
   ctx.fillStyle = C_NAVY_DEEP;
   ctx.font = 'bold 44px "Times New Roman", Georgia, serif';
-  ctx.fillText(displayName, W / 2, 595);
+  ctx.fillText(displayName, W / 2, 575);
+
+  // Father's Name (S/O, D/O)
+  const fatherRaw = (data.fatherName || '').trim();
+  if (fatherRaw) {
+    const fatherUpper = fatherRaw.toUpperCase();
+    const displayFather =
+      fatherUpper.startsWith('MR.') ||
+      fatherUpper.startsWith('SHRI') ||
+      fatherUpper.startsWith('LATE')
+        ? fatherUpper
+        : `SHRI ${fatherUpper}`;
+    ctx.fillStyle = C_GOLD_DARK;
+    ctx.font = 'bold 20px Arial, sans-serif';
+    ctx.fillText(`S/O, D/O: ${displayFather}`, W / 2, 610);
+  }
 
   // Gold accent line under name
   const nameMetric = ctx.measureText(displayName);
-  const nameW = nameMetric.width;
+  const nameW = Math.max(nameMetric.width, 360);
   ctx.strokeStyle = C_GOLD_MID;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(W / 2 - nameW / 2 - 30, 620);
-  ctx.lineTo(W / 2 + nameW / 2 + 30, 620);
+  ctx.moveTo(W / 2 - nameW / 2 - 20, 630);
+  ctx.lineTo(W / 2 + nameW / 2 + 20, 630);
   ctx.stroke();
 
   // 5. Details Card (Enrollment Particulars)
   const cardX = 200;
-  const cardY = 675;
+  const cardY = 660;
   const cardW = 2000;
-  const cardH = 360;
+  const cardH = 375;
 
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(cardX, cardY, cardW, cardH);
@@ -234,12 +250,17 @@ export const renderLuxuryCertificate = async (
   ctx.textAlign = 'right';
   ctx.fillText('AUTHENTIC DATABASE ENTRY', cardX + cardW - 30, cardY + 28);
 
-  // Card Fields Grid
+  // Card Fields Grid (8 balanced fields across 4 rows)
   const fields = [
     {
       label: 'REGISTRATION NUMBER',
       val: data.registrationNumber || 'IAA-2026-100',
       isHighlight: true,
+    },
+    {
+      label: "FATHER'S NAME (S/O, D/O)",
+      val: data.fatherName ? data.fatherName.toUpperCase() : 'N/A',
+      isHighlight: false,
     },
     {
       label: 'PROGRAM ENROLLED',
@@ -257,20 +278,25 @@ export const renderLuxuryCertificate = async (
       isHighlight: false,
     },
     {
+      label: 'TRAINING STATUS',
+      val: data.status || 'Verified Active / Admitted Student',
+      isHighlight: false,
+    },
+    {
       label: 'CAMPUS LOCATION',
       val: data.campus || 'Indore Campus (Sayaji Plaza, MP - 452001)',
       isHighlight: false,
     },
     {
-      label: 'TRAINING STATUS',
-      val: data.status || 'Verified Active / Admitted Student',
+      label: 'CENTRAL AVIATION REGISTRY',
+      val: 'Authenticated Cloud Database Record',
       isHighlight: false,
     },
   ];
 
   const col1X = cardX + 60;
   const col2X = cardX + cardW / 2 + 40;
-  const rowYs = [cardY + 70, cardY + 160, cardY + 250];
+  const rowYs = [cardY + 68, cardY + 144, cardY + 220, cardY + 296];
 
   fields.forEach((f, idx) => {
     const colX = idx % 2 === 0 ? col1X : col2X;
@@ -279,26 +305,26 @@ export const renderLuxuryCertificate = async (
     // Gold dot
     ctx.fillStyle = C_GOLD_MID;
     ctx.beginPath();
-    ctx.arc(colX + 4, rowY + 8, 4, 0, Math.PI * 2);
+    ctx.arc(colX + 4, rowY + 6, 4, 0, Math.PI * 2);
     ctx.fill();
 
     // Label
     ctx.fillStyle = C_SLATE_MUTED;
-    ctx.font = 'bold 15px Arial, sans-serif';
+    ctx.font = 'bold 14px Arial, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(f.label, colX + 18, rowY + 12);
+    ctx.fillText(f.label, colX + 18, rowY + 10);
 
     // Value
     ctx.fillStyle = f.isHighlight ? C_NAVY_MID : C_SLATE_DARK;
-    ctx.font = f.isHighlight ? 'bold 23px Arial, sans-serif' : 'bold 21px Arial, sans-serif';
-    ctx.fillText(f.val, colX + 18, rowY + 44);
+    ctx.font = f.isHighlight ? 'bold 22px Arial, sans-serif' : 'bold 20px Arial, sans-serif';
+    ctx.fillText(f.val, colX + 18, rowY + 38);
 
     // Divider line
     ctx.strokeStyle = '#EBEFF5';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(colX + 18, rowY + 62);
-    ctx.lineTo(colX + 820, rowY + 62);
+    ctx.moveTo(colX + 18, rowY + 54);
+    ctx.lineTo(colX + 840, rowY + 54);
     ctx.stroke();
   });
 

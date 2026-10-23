@@ -39,6 +39,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   // Form Fields
   const [formData, setFormData] = useState<CertificateData>({
     studentName: '',
+    fatherName: '',
     registrationNumber: '',
     courseName: 'IATA SOFTWARE BASIC TRAINING',
     duration: '1 MONTH (Full Time)',
@@ -52,6 +53,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
     if (student) {
       setFormData({
         studentName: student.student_name || '',
+        fatherName: student.father_name || '',
         registrationNumber: student.registration_number || '',
         courseName: student.course_name || 'IATA SOFTWARE BASIC TRAINING',
         duration: '1 MONTH (Full Time)',
@@ -65,6 +67,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
     } else {
       setFormData({
         studentName: '',
+        fatherName: '',
         registrationNumber: 'IAA27Y2GV2026/8420',
         courseName: 'IATA SOFTWARE BASIC TRAINING',
         duration: '1 MONTH (Full Time)',
@@ -224,6 +227,16 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
                   placeholder="e.g. Rohit Kumar"
                   className="bg-slate-950 border-slate-800 text-white text-xs mt-1 focus:border-amber-400 font-bold"
+                />
+              </div>
+
+              <div>
+                <Label className="text-slate-300 text-xs font-medium">Father's Name (S/O, D/O)</Label>
+                <Input
+                  value={formData.fatherName || ''}
+                  onChange={(e) => setFormData({ ...formData, fatherName: e.target.value })}
+                  placeholder="e.g. Chandilal"
+                  className="bg-slate-950 border-slate-800 text-white text-xs mt-1 focus:border-amber-400"
                 />
               </div>
 
