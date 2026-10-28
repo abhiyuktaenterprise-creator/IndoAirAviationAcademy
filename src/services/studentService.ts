@@ -147,6 +147,7 @@ export const studentService = {
         let query = supabase
           .from('students')
           .select('*')
+          .not('registration_number', 'ilike', 'VAA%')
           .order('created_at', { ascending: false });
 
         if (!showArchived) {

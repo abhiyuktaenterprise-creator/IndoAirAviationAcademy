@@ -18,8 +18,11 @@ import {
   XCircle,
   HelpCircle,
   FileCheck,
+  RefreshCw,
+  FileText,
 } from 'lucide-react';
 import logoImage from '@/assets/indo-air-aviation-logo-removebg-preview.png';
+import { renderLuxuryCertificate, downloadCertificatePDF } from '@/utils/certificateCanvas';
 
 const formatDateOfBirth = (dob?: string | null): string => {
   if (!dob) return '';
@@ -41,6 +44,38 @@ export const StudentVerification: React.FC = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [verifiedResult, setVerifiedResult] = useState<PublicVerificationResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [downloadingCert, setDownloadingCert] = useState(false);
+
+  const handleDownloadStudentCertificate = async () => {
+    if (!verifiedResult) return;
+    setDownloadingCert(true);
+    try {
+      const canvas = document.createElement('canvas');
+      await renderLuxuryCertificate(
+        canvas,
+        {
+          studentName: verifiedResult.student_name,
+          fatherName: verifiedResult.father_name,
+          registrationNumber: verifiedResult.registration_number,
+          courseName: verifiedResult.course_name,
+          duration: '1 MONTH (Full Time)',
+          admissionDate: verifiedResult.admission_date,
+          status:
+            verifiedResult.status === 'Completed'
+              ? 'Course Completed & Certified'
+              : 'Verified Active / Admitted Student',
+          campus: 'Indore Campus (Sayaji Plaza, MP - 452001)',
+        },
+        logoImage,
+        '/ss-rajpoot-signature.png'
+      );
+      downloadCertificatePDF(canvas, verifiedResult.student_name);
+    } catch (err) {
+      console.error('Error generating student certificate PDF:', err);
+    } finally {
+      setDownloadingCert(false);
+    }
+  };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -384,19 +419,33 @@ export const StudentVerification: React.FC = () => {
                 <div className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-2 print:hidden">
                   <Button
                     type="button"
+                    onClick={handleDownloadStudentCertificate}
+                    disabled={downloadingCert}
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold cursor-pointer shadow-md"
+                    title="Download high-resolution official admission/completion certificate in PDF"
+                  >
+                    {downloadingCert ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Award className="w-4 h-4 mr-2" />
+                    )}
+                    Download Official Certificate (PDF)
+                  </Button>
+                  <Button
+                    type="button"
                     variant="outline"
                     onClick={handlePrint}
                     className="w-full sm:w-auto border-slate-300 text-slate-700 hover:bg-slate-100 cursor-pointer"
                   >
                     <Printer className="w-4 h-4 mr-2 text-slate-500" />
-                    Print / Save Record
+                    Print Summary
                   </Button>
                   <Button
                     type="button"
                     onClick={handleReset}
                     className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white cursor-pointer"
                   >
-                    Verify Another Certificate
+                    Verify Another
                   </Button>
                 </div>
               </CardContent>

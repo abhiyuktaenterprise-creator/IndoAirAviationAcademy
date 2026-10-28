@@ -16,9 +16,15 @@ import {
   Sparkles,
   RefreshCw,
   CheckCircle2,
+  FileText,
 } from 'lucide-react';
 import { Student } from '@/services/studentService';
-import { renderLuxuryCertificate, CertificateData } from '@/utils/certificateCanvas';
+import {
+  renderLuxuryCertificate,
+  CertificateData,
+  downloadCertificatePDF,
+  downloadCertificatePNG,
+} from '@/utils/certificateCanvas';
 import logoImage from '@/assets/indo-air-aviation-logo-removebg-preview.png';
 import signatureImage from '@/assets/ss-rajpoot-signature.png';
 
@@ -106,15 +112,16 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
     };
   }, [formData, open]);
 
-  // Handle Download High-Res PNG
+  // Handle Download Ultra-HD PNG
   const handleDownloadPNG = () => {
     if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const link = document.createElement('a');
-    const safeName = (formData.studentName || 'Student').trim().replace(/[^a-zA-Z0-9]/g, '_');
-    link.download = `Certificate_${safeName}.png`;
-    link.href = canvas.toDataURL('image/png', 1.0);
-    link.click();
+    downloadCertificatePNG(canvasRef.current, formData.studentName);
+  };
+
+  // Handle Download Print-Ready A4 PDF (lossless, uncompressed on WhatsApp)
+  const handleDownloadPDF = () => {
+    if (!canvasRef.current) return;
+    downloadCertificatePDF(canvasRef.current, formData.studentName);
   };
 
   // Handle Print / PDF
@@ -188,16 +195,27 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
               className="text-xs bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5 mr-1 text-slate-400" />
-              Print / PDF
+              Print
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadPNG}
+              className="text-xs bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 mr-1 text-slate-400" />
+              Ultra-HD PNG
             </Button>
             <Button
               type="button"
               size="sm"
-              onClick={handleDownloadPNG}
+              onClick={handleDownloadPDF}
               className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold cursor-pointer shadow-md"
+              title="Recommended: PDFs do not get pixelated when shared on WhatsApp"
             >
-              <Download className="w-3.5 h-3.5 mr-1" />
-              Download (HD PNG)
+              <FileText className="w-3.5 h-3.5 mr-1" />
+              Download PDF
             </Button>
           </div>
         </DialogHeader>
@@ -306,9 +324,12 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800 text-[11px] text-slate-400 space-y-1">
               <p className="font-semibold text-slate-300">Features included:</p>
               <p>• Official Academy Logo & Medallion Seal</p>
-              <p>• S S Rajpoot (Company CEO) & R. Sharma Signatures</p>
-              <p>• Live QR Code linked to website verification portal</p>
-              <p>• High-Resolution 2400 × 1700 print-ready canvas</p>
+              <p>• S S Rajpoot (Company CEO & Director) Authentic Signature</p>
+              <p>• 600px High-Res QR Code linked to verification portal</p>
+              <p>• Print-ready 300 DPI (3508 × 2480 px) resolution</p>
+              <p className="text-amber-300 pt-1 font-medium">
+                💡 Tip: Use PDF format when sharing via WhatsApp to avoid image compression & pixelation.
+              </p>
             </div>
           </div>
 
@@ -319,7 +340,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 <span>Live Certificate Preview</span>
                 {loading && <RefreshCw className="w-3 h-3 animate-spin text-amber-400" />}
               </span>
-              <span className="text-[11px] font-mono text-slate-500">2400 × 1700 HD Landscape</span>
+              <span className="text-[11px] font-mono text-emerald-400 font-semibold">3508 × 2480 • 300 DPI Print Ready</span>
             </div>
 
             {/* Canvas Box with drop shadow and border */}
@@ -333,15 +354,23 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             {/* Download CTA Bar */}
             <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <p className="text-xs text-slate-400 text-center sm:text-left">
-                Click download to get this certificate in full high resolution PNG.
+                Download in vector PDF (uncompressed on WhatsApp) or 300 DPI Ultra-HD PNG.
               </p>
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button
                   onClick={handleDownloadPNG}
-                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold cursor-pointer text-xs h-9 px-4"
+                  variant="outline"
+                  className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 font-semibold cursor-pointer text-xs h-9 px-3"
                 >
-                  <Download className="w-3.5 h-3.5 mr-1.5" />
-                  Download Certificate
+                  <Download className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+                  Ultra-HD PNG
+                </Button>
+                <Button
+                  onClick={handleDownloadPDF}
+                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold cursor-pointer text-xs h-9 px-4 shadow-md"
+                >
+                  <FileText className="w-3.5 h-3.5 mr-1.5" />
+                  Download PDF (Recommended)
                 </Button>
               </div>
             </div>

@@ -1,4 +1,6 @@
 import QRCode from 'qrcode';
+import { jsPDF } from 'jspdf';
+import defaultLogoSrc from '@/assets/indo-air-aviation-logo-removebg-preview.png';
 import defaultSignatureSrc from '@/assets/ss-rajpoot-signature.png';
 
 export interface CertificateData {
@@ -15,16 +17,21 @@ export interface CertificateData {
 export const renderLuxuryCertificate = async (
   canvas: HTMLCanvasElement,
   data: CertificateData,
-  logoSrc: string,
-  signatureSrc: string = defaultSignatureSrc
+  logoSrc: string = '/indo-air-aviation-logo-removebg-preview.png',
+  signatureSrc: string = '/ss-rajpoot-signature.png'
 ): Promise<void> => {
-  const W = 2400;
-  const H = 1700;
+  // True A4 300 DPI Print Resolution: 3508 x 2480 pixels
+  const W = 3508;
+  const H = 2480;
   canvas.width = W;
   canvas.height = H;
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) return;
+
+  // Enable high-quality image smoothing for ultra-crisp output
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
   // Colors
   const C_NAVY_DEEP = '#0B1C40';
@@ -42,123 +49,130 @@ export const renderLuxuryCertificate = async (
 
   // Outer solid navy frame
   ctx.fillStyle = C_NAVY_DEEP;
-  ctx.fillRect(0, 0, W, 32);
-  ctx.fillRect(0, H - 32, W, 32);
-  ctx.fillRect(0, 0, 32, H);
-  ctx.fillRect(W - 32, 0, 32, H);
+  ctx.fillRect(0, 0, W, 46);
+  ctx.fillRect(0, H - 46, W, 46);
+  ctx.fillRect(0, 0, 46, H);
+  ctx.fillRect(W - 46, 0, 46, H);
 
   // Triple Gold Borders
   ctx.strokeStyle = C_GOLD_MID;
-  ctx.lineWidth = 4;
-  ctx.strokeRect(40, 40, W - 80, H - 80);
+  ctx.lineWidth = 6;
+  ctx.strokeRect(58, 58, W - 116, H - 116);
 
   ctx.strokeStyle = C_GOLD_DARK;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(48, 48, W - 96, H - 96);
+  ctx.lineWidth = 2;
+  ctx.strokeRect(70, 70, W - 140, H - 140);
 
   ctx.strokeStyle = C_GOLD_LIGHT;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(56, 56, W - 112, H - 112);
+  ctx.lineWidth = 3;
+  ctx.strokeRect(82, 82, W - 164, H - 164);
 
   // 4 Corner Ornaments (Art-Deco Diamonds)
   const corners = [
-    { cx: 56, cy: 56, sx: 1, sy: 1 },
-    { cx: W - 56, cy: 56, sx: -1, sy: 1 },
-    { cx: 56, cy: H - 56, sx: 1, sy: -1 },
-    { cx: W - 56, cy: H - 56, sx: -1, sy: -1 },
+    { cx: 82, cy: 82, sx: 1, sy: 1 },
+    { cx: W - 82, cy: 82, sx: -1, sy: 1 },
+    { cx: 82, cy: H - 82, sx: 1, sy: -1 },
+    { cx: W - 82, cy: H - 82, sx: -1, sy: -1 },
   ];
 
   corners.forEach(({ cx, cy, sx, sy }) => {
     ctx.fillStyle = C_NAVY_DEEP;
-    const x1 = Math.min(cx, cx + sx * 40);
-    const y1 = Math.min(cy, cy + sy * 40);
-    ctx.fillRect(x1, y1, 40, 40);
+    const x1 = Math.min(cx, cx + sx * 58);
+    const y1 = Math.min(cy, cy + sy * 58);
+    ctx.fillRect(x1, y1, 58, 58);
 
-    const dx = cx + sx * 20;
-    const dy = cy + sy * 20;
+    const dx = cx + sx * 29;
+    const dy = cy + sy * 29;
     ctx.fillStyle = C_GOLD_MID;
     ctx.beginPath();
-    ctx.moveTo(dx, dy - 8);
-    ctx.lineTo(dx + 8, dy);
-    ctx.lineTo(dx, dy + 8);
-    ctx.lineTo(dx - 8, dy);
+    ctx.moveTo(dx, dy - 12);
+    ctx.lineTo(dx + 12, dy);
+    ctx.lineTo(dx, dy + 12);
+    ctx.lineTo(dx - 12, dy);
     ctx.closePath();
     ctx.fill();
   });
 
   // Subtle Guilloche Rings in Pale Gold
-  ctx.strokeStyle = '#F5F2E6';
-  ctx.lineWidth = 1;
-  for (let r = 400; r < 1200; r += 60) {
+  ctx.strokeStyle = '#F4EEDB';
+  ctx.lineWidth = 1.5;
+  for (let r = 580; r < 1750; r += 88) {
     ctx.beginPath();
     ctx.ellipse(W / 2, H / 2, r, r * 0.7, 0, 0, Math.PI * 2);
     ctx.stroke();
   }
 
-  // 2. Official Academy Logo
+  // Helper to safely load images without CORS or decoding breakage
   const loadImg = (src: string): Promise<HTMLImageElement> =>
     new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      if (src.startsWith('http://') || src.startsWith('https://')) {
+        img.crossOrigin = 'anonymous';
+      }
       img.onload = () => resolve(img);
-      img.onerror = reject;
+      img.onerror = (e) => reject(new Error(`Failed to load ${src}: ${e}`));
       img.src = src;
+
+      if (img.complete && img.naturalWidth > 0) {
+        resolve(img);
+      }
     });
 
+  // 2. Official Academy Logo
   try {
     const logoImg = await loadImg(logoSrc);
-    const logoH = 160;
+    const logoH = 230;
     const logoW = (logoImg.width / logoImg.height) * logoH;
-    ctx.drawImage(logoImg, W / 2 - logoW / 2, 80, logoW, logoH);
+    ctx.drawImage(logoImg, W / 2 - logoW / 2, 115, logoW, logoH);
   } catch (e) {
-    console.warn('Failed to load logo on certificate canvas', e);
+    console.warn('Failed to load logo on certificate canvas:', e instanceof Error ? e.message : e);
   }
 
   // Academy Title
   ctx.fillStyle = C_NAVY_DEEP;
-  ctx.font = 'bold 46px "Times New Roman", Georgia, serif';
+  ctx.font = 'bold 66px "Times New Roman", Georgia, serif';
   ctx.textAlign = 'center';
-  ctx.fillText('INDO AIR AVIATION ACADEMY', W / 2, 290);
+  ctx.fillText('INDO AIR AVIATION ACADEMY', W / 2, 420);
 
   // Subtitle
   ctx.fillStyle = C_GOLD_DARK;
-  ctx.font = 'bold 17px Arial, sans-serif';
+  ctx.font = 'bold 24px Arial, sans-serif';
   ctx.fillText(
-    "CENTRAL INDIA'S PREMIER AVIATION TRAINING & PATHWAY INSTITUTE • INDORE",
+    'DGCA APPROVED • IATA ALIGNED • ISO 9001:2015 CERTIFIED AVIATION ACADEMY • INDORE CAMPUS',
     W / 2,
-    325
+    472
   );
 
   // Gold Divider Lines & Star
-  const lineW = 400;
+  const lineW = 580;
   ctx.strokeStyle = C_GOLD_MID;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(W / 2 - lineW, 350);
-  ctx.lineTo(W / 2 - 40, 350);
-  ctx.moveTo(W / 2 + 40, 350);
-  ctx.lineTo(W / 2 + lineW, 350);
+  ctx.moveTo(W / 2 - lineW, 508);
+  ctx.lineTo(W / 2 - 58, 508);
+  ctx.moveTo(W / 2 + 58, 508);
+  ctx.lineTo(W / 2 + lineW, 508);
   ctx.stroke();
 
   // Center Star
   ctx.fillStyle = C_GOLD_MID;
-  drawStar(ctx, W / 2, 350, 5, 12, 6);
+  drawStar(ctx, W / 2, 508, 5, 17, 8);
 
   // 3. Title Ribbon Banner
-  const bw = 940;
-  const bh = 68;
+  const bw = 1380;
+  const bh = 98;
   const bx = W / 2 - bw / 2;
-  const by = 385;
+  const by = 556;
 
   ctx.fillStyle = C_NAVY_DEEP;
   ctx.fillRect(bx, by, bw, bh);
 
   ctx.strokeStyle = C_GOLD_MID;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(bx + 4, by + 4, bw - 8, bh - 8);
+  ctx.lineWidth = 3;
+  ctx.strokeRect(bx + 6, by + 6, bw - 12, bh - 12);
 
   // Ribbon end triangles
-  const foldSize = 28;
+  const foldSize = 40;
   ctx.fillStyle = C_GOLD_MID;
   ctx.beginPath();
   ctx.moveTo(bx, by);
@@ -175,30 +189,30 @@ export const renderLuxuryCertificate = async (
   ctx.fill();
 
   ctx.fillStyle = C_GOLD_PALE;
-  ctx.font = 'bold 34px "Times New Roman", Georgia, serif';
+  ctx.font = 'bold 48px "Times New Roman", Georgia, serif';
   ctx.textAlign = 'center';
-  ctx.fillText('OFFICIAL ADMISSION LETTER & CERTIFICATE', W / 2, by + 46);
+  ctx.fillText('OFFICIAL ADMISSION LETTER & CERTIFICATE', W / 2, by + 66);
 
   // 4. Preamble & Student Name
   ctx.fillStyle = C_SLATE_MUTED;
-  ctx.font = 'italic 24px "Times New Roman", Georgia, serif';
+  ctx.font = 'italic 34px "Times New Roman", Georgia, serif';
   ctx.fillText(
     'This is to officially certify that the candidate whose particulars appear below',
     W / 2,
-    485
+    705
   );
   ctx.fillText(
     'has been formally admitted and registered with Indo Air Aviation Academy.',
     W / 2,
-    518
+    752
   );
 
   // Candidate Name
   const rawName = data.studentName.trim().toUpperCase() || 'STUDENT FULL NAME';
   const displayName = rawName.startsWith('MR.') || rawName.startsWith('MS.') ? rawName : `MR. ${rawName}`;
   ctx.fillStyle = C_NAVY_DEEP;
-  ctx.font = 'bold 44px "Times New Roman", Georgia, serif';
-  ctx.fillText(displayName, W / 2, 575);
+  ctx.font = 'bold 64px "Times New Roman", Georgia, serif';
+  ctx.fillText(displayName, W / 2, 835);
 
   // Father's Name (S/O, D/O)
   const fatherRaw = (data.fatherName || '').trim();
@@ -211,44 +225,44 @@ export const renderLuxuryCertificate = async (
         ? fatherUpper
         : `SHRI ${fatherUpper}`;
     ctx.fillStyle = C_GOLD_DARK;
-    ctx.font = 'bold 20px Arial, sans-serif';
-    ctx.fillText(`S/O, D/O: ${displayFather}`, W / 2, 610);
+    ctx.font = 'bold 28px Arial, sans-serif';
+    ctx.fillText(`S/O, D/O: ${displayFather}`, W / 2, 885);
   }
 
   // Gold accent line under name
   const nameMetric = ctx.measureText(displayName);
-  const nameW = Math.max(nameMetric.width, 360);
+  const nameW = Math.max(nameMetric.width, 520);
   ctx.strokeStyle = C_GOLD_MID;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(W / 2 - nameW / 2 - 20, 630);
-  ctx.lineTo(W / 2 + nameW / 2 + 20, 630);
+  ctx.moveTo(W / 2 - nameW / 2 - 30, 915);
+  ctx.lineTo(W / 2 + nameW / 2 + 30, 915);
   ctx.stroke();
 
   // 5. Details Card (Enrollment Particulars)
-  const cardX = 200;
-  const cardY = 660;
-  const cardW = 2000;
-  const cardH = 375;
+  const cardX = 290;
+  const cardY = 955;
+  const cardW = 2928;
+  const cardH = 545;
 
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(cardX, cardY, cardW, cardH);
   ctx.strokeStyle = C_GOLD_MID;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.strokeRect(cardX, cardY, cardW, cardH);
 
   // Card Header strip
   ctx.fillStyle = C_NAVY_DEEP;
-  ctx.fillRect(cardX, cardY, cardW, 44);
+  ctx.fillRect(cardX, cardY, cardW, 64);
 
   ctx.fillStyle = C_GOLD_PALE;
-  ctx.font = 'bold 17px Arial, sans-serif';
+  ctx.font = 'bold 24px Arial, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('ENROLLMENT RECORD & PROGRAM PARTICULARS', cardX + 30, cardY + 28);
+  ctx.fillText('ENROLLMENT RECORD & PROGRAM PARTICULARS', cardX + 44, cardY + 41);
 
   ctx.fillStyle = C_GOLD_MID;
   ctx.textAlign = 'right';
-  ctx.fillText('AUTHENTIC DATABASE ENTRY', cardX + cardW - 30, cardY + 28);
+  ctx.fillText('AUTHENTIC DATABASE ENTRY', cardX + cardW - 44, cardY + 41);
 
   // Card Fields Grid (8 balanced fields across 4 rows)
   const fields = [
@@ -294,70 +308,69 @@ export const renderLuxuryCertificate = async (
     },
   ];
 
-  const col1X = cardX + 60;
-  const col2X = cardX + cardW / 2 + 40;
-  const rowYs = [cardY + 68, cardY + 144, cardY + 220, cardY + 296];
+  const col1X = cardX + 85;
+  const col2X = cardX + cardW / 2 + 55;
+  const rowYs = [cardY + 98, cardY + 208, cardY + 318, cardY + 428];
 
   fields.forEach((f, idx) => {
     const colX = idx % 2 === 0 ? col1X : col2X;
     const rowY = rowYs[Math.floor(idx / 2)];
 
-    // Gold dot
+    // Gold bullet dot
     ctx.fillStyle = C_GOLD_MID;
     ctx.beginPath();
-    ctx.arc(colX + 4, rowY + 6, 4, 0, Math.PI * 2);
+    ctx.arc(colX + 6, rowY + 9, 6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Label
+    // Field Label (High readability bold 20px)
     ctx.fillStyle = C_SLATE_MUTED;
-    ctx.font = 'bold 14px Arial, sans-serif';
+    ctx.font = 'bold 20px Arial, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(f.label, colX + 18, rowY + 10);
+    ctx.fillText(f.label, colX + 26, rowY + 15);
 
-    // Value
+    // Field Value (High readability bold 28-32px)
     ctx.fillStyle = f.isHighlight ? C_NAVY_MID : C_SLATE_DARK;
-    ctx.font = f.isHighlight ? 'bold 22px Arial, sans-serif' : 'bold 20px Arial, sans-serif';
-    ctx.fillText(f.val, colX + 18, rowY + 38);
+    ctx.font = f.isHighlight ? 'bold 32px Arial, sans-serif' : 'bold 28px Arial, sans-serif';
+    ctx.fillText(f.val, colX + 26, rowY + 55);
 
     // Divider line
-    ctx.strokeStyle = '#EBEFF5';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(colX + 18, rowY + 54);
-    ctx.lineTo(colX + 840, rowY + 54);
+    ctx.moveTo(colX + 26, rowY + 76);
+    ctx.lineTo(colX + 1220, rowY + 76);
     ctx.stroke();
   });
 
   // 6. Confirmation Statement
   ctx.fillStyle = C_SLATE_DARK;
-  ctx.font = 'italic 21px "Times New Roman", Georgia, serif';
+  ctx.font = 'italic 30px "Times New Roman", Georgia, serif';
   ctx.textAlign = 'center';
   ctx.fillText(
     'We are pleased to confirm your admission. The institution certifies that your enrollment records have been',
     W / 2,
-    1075
+    1565
   );
   ctx.fillText(
     'authenticated and uploaded onto our central aviation student registry for verification by airlines and recruiters.',
     W / 2,
-    1105
+    1608
   );
 
-  // 7. Signatures, Gold Seal & Verification QR Code
-  const sigY = 1250;
+  // 7. Signatures, Accreditations (ISO & IATA), Gold Seal & Verification QR Code
+  const sigY = 1815;
 
-  // Left: Authorized Signatory - S S Rajpoot (CEO & Executive Director)
-  const sigLeftX = 240;
-  const lineMid = sigLeftX + 170;
+  // 7A. Left: Authorized Signatory - S S Rajpoot (CEO & Executive Director)
+  const sigLeftX = 220;
+  const lineMid = sigLeftX + 220;
 
-  // Try loading professional signature image
   let sigDrawn = false;
   if (signatureSrc) {
     try {
       const sigImg = await loadImg(signatureSrc);
-      const targetW = 300;
+      const targetW = 400;
       const targetH = (sigImg.height * targetW) / sigImg.width;
-      ctx.drawImage(sigImg, sigLeftX + 20, sigY - 32, targetW, targetH);
+      ctx.drawImage(sigImg, sigLeftX + 20, sigY - 45, targetW, targetH);
       sigDrawn = true;
     } catch (err) {
       console.warn('Failed to load signature image, using fallback calligraphy stroke', err);
@@ -367,48 +380,67 @@ export const renderLuxuryCertificate = async (
   // Fallback if image failed to load
   if (!sigDrawn) {
     ctx.fillStyle = '#0F2552';
-    ctx.font = 'italic bold 36px "Brush Script MT", "Snell Roundhand", cursive, "Times New Roman"';
+    ctx.font = 'italic bold 52px "Brush Script MT", "Snell Roundhand", cursive, "Times New Roman"';
     ctx.textAlign = 'center';
-    ctx.fillText('S. S. Rajpoot', lineMid, sigY + 30);
+    ctx.fillText('S. S. Rajpoot', lineMid, sigY + 45);
     // Decorative ink underline swoop
     ctx.strokeStyle = '#0F2552';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(sigLeftX + 30, sigY + 42);
-    ctx.quadraticCurveTo(lineMid, sigY + 54, sigLeftX + 310, sigY + 38);
+    ctx.moveTo(sigLeftX + 35, sigY + 62);
+    ctx.quadraticCurveTo(lineMid, sigY + 78, sigLeftX + 405, sigY + 56);
     ctx.stroke();
   }
 
   // Signature horizontal line
   ctx.strokeStyle = C_SLATE_MUTED;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(sigLeftX, sigY + 55);
-  ctx.lineTo(sigLeftX + 340, sigY + 55);
+  ctx.moveTo(sigLeftX, sigY + 80);
+  ctx.lineTo(sigLeftX + 440, sigY + 80);
   ctx.stroke();
 
   // Signatory Title & Designation
   ctx.fillStyle = C_SLATE_DARK;
-  ctx.font = 'bold 18px Arial, sans-serif';
+  ctx.font = 'bold 26px Arial, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('S S RAJPOOT', lineMid, sigY + 82);
+  ctx.fillText('S S RAJPOOT', lineMid, sigY + 120);
 
   ctx.fillStyle = C_GOLD_DARK;
-  ctx.font = 'bold 14px Arial, sans-serif';
-  ctx.fillText('Company CEO & Executive Director', lineMid, sigY + 104);
+  ctx.font = 'bold 18px Arial, sans-serif';
+  ctx.fillText('Company CEO & Executive Director', lineMid, sigY + 152);
 
-  // Center: Official Luxury Gold Embossed Academy Seal (Centered at W / 2)
+  // 7B. Left-Center: ISO 9001:2015 Certification Badge (from Vansh Aviation layout)
+  const isoCx = 1130;
+  const isoCy = sigY + 58;
+  const badgeSize = 175;
+  try {
+    const isoImg = await loadImg('/iso-badge.png');
+    ctx.drawImage(isoImg, isoCx - badgeSize / 2, isoCy - badgeSize / 2 - 12, badgeSize, badgeSize);
+  } catch (err) {
+    console.warn('Failed to draw ISO badge', err);
+  }
+  ctx.fillStyle = C_NAVY_MID;
+  ctx.font = 'bold 20px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ISO 9001:2015 CERTIFIED', isoCx, isoCy + 104);
+
+  ctx.fillStyle = C_SLATE_MUTED;
+  ctx.font = 'bold 15px Arial, sans-serif';
+  ctx.fillText('Quality Management System', isoCx, isoCy + 128);
+
+  // 7C. Center: Official Luxury Gold Embossed Academy Seal (Centered at W / 2)
   const sealCx = W / 2;
-  const sealCy = sigY + 40;
-  const sealR = 75;
+  const sealCy = sigY + 58;
+  const sealR = 108;
 
   ctx.fillStyle = C_GOLD_MID;
   for (let angle = 0; angle < 360; angle += 10) {
     const rad = (angle * Math.PI) / 180;
-    const tx = sealCx + (sealR + 8) * Math.cos(rad);
-    const ty = sealCy + (sealR + 8) * Math.sin(rad);
+    const tx = sealCx + (sealR + 12) * Math.cos(rad);
+    const ty = sealCy + (sealR + 12) * Math.sin(rad);
     ctx.beginPath();
-    ctx.arc(tx, ty, 12, 0, Math.PI * 2);
+    ctx.arc(tx, ty, 17, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -418,44 +450,63 @@ export const renderLuxuryCertificate = async (
   ctx.fill();
 
   ctx.strokeStyle = C_GOLD_LIGHT;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 4;
   ctx.stroke();
 
   ctx.strokeStyle = C_GOLD_MID;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(sealCx, sealCy, sealR - 10, 0, Math.PI * 2);
+  ctx.arc(sealCx, sealCy, sealR - 14, 0, Math.PI * 2);
   ctx.stroke();
 
   ctx.fillStyle = C_GOLD_PALE;
-  ctx.font = 'bold 15px Arial, sans-serif';
+  ctx.font = 'bold 22px Arial, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('INDO AIR', sealCx, sealCy - 32);
+  ctx.fillText('INDO AIR', sealCx, sealCy - 46);
 
   ctx.fillStyle = C_GOLD_MID;
-  ctx.font = 'bold 12px Arial, sans-serif';
-  ctx.fillText('EXCELLENCE', sealCx, sealCy - 12);
+  ctx.font = 'bold 17px Arial, sans-serif';
+  ctx.fillText('EXCELLENCE', sealCx, sealCy - 17);
 
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 14px Arial, sans-serif';
-  ctx.fillText('OFFICIAL', sealCx, sealCy + 8);
-  ctx.fillText('SEAL', sealCx, sealCy + 26);
+  ctx.font = 'bold 20px Arial, sans-serif';
+  ctx.fillText('OFFICIAL', sealCx, sealCy + 12);
+  ctx.fillText('SEAL', sealCx, sealCy + 38);
 
   ctx.fillStyle = C_GOLD_LIGHT;
-  ctx.font = 'bold 12px Arial, sans-serif';
-  ctx.fillText('INDORE', sealCx, sealCy + 44);
+  ctx.font = 'bold 17px Arial, sans-serif';
+  ctx.fillText('INDORE', sealCx, sealCy + 64);
 
-  // Right: Verification QR Code with Domain
-  const qrX = W - 450;
-  const qrY = sigY - 45;
-  const qrW = 170;
-  const qrMid = qrX + (qrW + 16) / 2;
+  // 7D. Right-Center: IATA Classic Standards Authorized Badge (from Vansh Aviation layout)
+  const iataCx = W - 1130;
+  const iataCy = sigY + 58;
+  try {
+    const iataImg = await loadImg('/iata-badge.png');
+    ctx.drawImage(iataImg, iataCx - badgeSize / 2, iataCy - badgeSize / 2 - 12, badgeSize, badgeSize);
+  } catch (err) {
+    console.warn('Failed to draw IATA badge', err);
+  }
+  ctx.fillStyle = C_NAVY_MID;
+  ctx.font = 'bold 20px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('IATA CLASSIC STANDARDS', iataCx, iataCy + 104);
+
+  ctx.fillStyle = C_SLATE_MUTED;
+  ctx.font = 'bold 15px Arial, sans-serif';
+  ctx.fillText('International Aviation Curriculum', iataCx, iataCy + 128);
+
+  // 7E. Right: High-Resolution Verification QR Code
+  const qrX = W - 530;
+  const qrY = sigY - 60;
+  const qrW = 230;
+  const qrMid = qrX + (qrW + 24) / 2;
 
   try {
     const qrDataUrl = await QRCode.toDataURL(
       'https://www.indoaviationacademy.com/verify',
       {
         margin: 1,
+        width: 600, // Generate high-resolution 600px QR
         color: {
           dark: '#0B1C40',
           light: '#FFFFFF',
@@ -464,40 +515,40 @@ export const renderLuxuryCertificate = async (
     );
     const qrImg = await loadImg(qrDataUrl);
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(qrX, qrY, qrW + 16, qrW + 16);
+    ctx.fillRect(qrX, qrY, qrW + 24, qrW + 24);
     ctx.strokeStyle = C_GOLD_MID;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(qrX, qrY, qrW + 16, qrW + 16);
-    ctx.drawImage(qrImg, qrX + 8, qrY + 8, qrW, qrW);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(qrX, qrY, qrW + 24, qrW + 24);
+    ctx.drawImage(qrImg, qrX + 12, qrY + 12, qrW, qrW);
   } catch (err) {
     console.warn('Failed to generate QR code', err);
   }
 
   ctx.fillStyle = C_NAVY_MID;
-  ctx.font = 'bold 13px Arial, sans-serif';
+  ctx.font = 'bold 18px Arial, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('SCAN TO VERIFY RECORD', qrMid, qrY + qrW + 36);
+  ctx.fillText('SCAN TO VERIFY RECORD', qrMid, qrY + qrW + 50);
 
   ctx.fillStyle = C_GOLD_DARK;
-  ctx.font = 'bold 14px Arial, sans-serif';
-  ctx.fillText('www.indoaviationacademy.com', qrMid, qrY + qrW + 56);
+  ctx.font = 'bold 19px Arial, sans-serif';
+  ctx.fillText('www.indoaviationacademy.com', qrMid, qrY + qrW + 76);
 
   // 8. Bottom Security Ribbon
-  const ribbonY = H - 90;
+  const ribbonY = H - 130;
   ctx.strokeStyle = C_GOLD_MID;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(100, ribbonY);
-  ctx.lineTo(W - 100, ribbonY);
+  ctx.moveTo(150, ribbonY);
+  ctx.lineTo(W - 150, ribbonY);
   ctx.stroke();
 
   ctx.fillStyle = C_SLATE_MUTED;
-  ctx.font = 'bold 13px Arial, sans-serif';
+  ctx.font = 'bold 18px Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(
-    'DREAM   •   LEARN   •   FLY   •   ACHIEVE   —   OFFICIAL ADMISSION RECORD OF INDO AIR AVIATION ACADEMY, INDORE',
+    'PRECISION   •   SAFETY   •   EXCELLENCE   •   DGCA APPROVED   •   IATA ALIGNED   •   ISO 9001:2015 CERTIFIED   —   INDO AIR AVIATION ACADEMY, INDORE',
     W / 2,
-    ribbonY + 22
+    ribbonY + 32
   );
 };
 
@@ -531,3 +582,40 @@ function drawStar(
   ctx.closePath();
   ctx.fill();
 }
+
+/**
+ * Download certificate as a print-ready 300 DPI A4 Landscape PDF.
+ * PDFs shared via WhatsApp / Email are never compressed by image compression.
+ */
+export const downloadCertificatePDF = (
+  canvas: HTMLCanvasElement,
+  studentName: string
+): void => {
+  const safeName = (studentName || 'Student').trim().replace(/[^a-zA-Z0-9]/g, '_');
+  const pdf = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+    compress: true,
+  });
+
+  // Use high-quality JPEG compression at 0.96 for crystal clear PDF text and graphics
+  const imgData = canvas.toDataURL('image/jpeg', 0.96);
+  // Standard A4 landscape is 297mm x 210mm
+  pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210, undefined, 'FAST');
+  pdf.save(`Admission_Certificate_${safeName}.pdf`);
+};
+
+/**
+ * Download certificate as an Ultra-HD 3508x2480 PNG (lossless).
+ */
+export const downloadCertificatePNG = (
+  canvas: HTMLCanvasElement,
+  studentName: string
+): void => {
+  const safeName = (studentName || 'Student').trim().replace(/[^a-zA-Z0-9]/g, '_');
+  const link = document.createElement('a');
+  link.download = `Admission_Certificate_${safeName}.png`;
+  link.href = canvas.toDataURL('image/png', 1.0);
+  link.click();
+};
