@@ -75,11 +75,11 @@ export const authService = {
         }
 
         return { user: data.user, session: data.session, error: null };
-      } catch (err: any) {
+      } catch (err: unknown) {
         return {
           user: null,
           session: null,
-          error: err.message || 'An unexpected error occurred during login.',
+          error: (err as Error).message || 'An unexpected error occurred during login.',
         };
       }
     }

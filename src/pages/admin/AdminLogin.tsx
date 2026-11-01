@@ -51,8 +51,8 @@ export const AdminLogin: React.FC = () => {
       toast.success('Welcome back!', { description: 'Authenticated successfully.' });
       setLoading(false);
       navigate('/admin', { replace: true });
-    } catch (err: any) {
-      setErrorMsg(err.message || 'An error occurred during sign in.');
+    } catch (err: unknown) {
+      setErrorMsg((err as Error).message || 'An error occurred during sign in.');
       setLoading(false);
     }
   };

@@ -101,7 +101,7 @@ const DEFAULT_STUDENTS: Student[] = [
 const getLocalStudents = (): Student[] => {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    let list: Student[] = raw ? JSON.parse(raw) : [];
+    const list: Student[] = raw ? JSON.parse(raw) : [];
 
     // Ensure all DEFAULT_STUDENTS are merged so any device opening the app gets latest registry
     let hasChanges = false;
@@ -272,10 +272,7 @@ export const studentService = {
    * Update an existing student record (Admin Only)
    */
   async updateStudent(id: string, updates: Partial<Student>): Promise<{ data: Student | null; error: string | null }> {
-    const cleanUpdates = { ...updates };
-    delete (cleanUpdates as any).id;
-    delete (cleanUpdates as any).created_at;
-    delete (cleanUpdates as any).updated_at;
+    const { id: _id, created_at: _created, updated_at: _updated, ...cleanUpdates } = updates;
 
     if (isSupabaseConfigured) {
       try {
@@ -493,8 +490,8 @@ export const studentService = {
       });
       saveLocalStudents(existing);
       return { count: added, error: null };
-    } catch (e: any) {
-      return { count: 0, error: e.message || 'Failed to import students' };
+    } catch (e: unknown) {
+      return { count: 0, error: (e as Error).message || 'Failed to import students' };
     }
   },
 };

@@ -29,7 +29,7 @@ const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits").regex(/^[0-9+\-\s\(\)]+$/, "Please enter a valid phone number"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits").regex(/^[0-9+\-\s()]+$/, "Please enter a valid phone number"),
   program: z.string().min(1, "Please select a program"),
 });
 
@@ -89,7 +89,7 @@ const AdmissionsSection = () => {
       console.error("Submission error:", error);
       toast({
         title: "Submission Failed",
-        description: "Something went wrong. Please try again or call us at +91 88584 53069.",
+        description: "Something went wrong. Please try again or call us at +91 99293 60880.",
         variant: "destructive",
       });
     } finally {
@@ -295,7 +295,7 @@ const AdmissionsSection = () => {
             <div className="mt-6 pt-6 border-t border-border text-center">
               <p className="text-sm text-muted-foreground">
                 Need help? Contact our admissions team at{" "}
-                <a href="tel:+918858453069" className="text-primary font-semibold hover:underline"> +91 88584 53069 </a>
+                <a href="tel:+919929360880" className="text-primary font-semibold hover:underline"> +91 99293 60880 </a>
               </p>
             </div>
           </div>

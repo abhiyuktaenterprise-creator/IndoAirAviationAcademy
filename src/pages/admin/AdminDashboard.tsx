@@ -1084,7 +1084,7 @@ export const AdminDashboard: React.FC = () => {
                   </Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(val: any) => setFormData({ ...formData, status: val })}
+                    onValueChange={(val) => setFormData({ ...formData, status: val as Student['status'] })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -1337,7 +1337,7 @@ export const AdminDashboard: React.FC = () => {
                   <Label className="text-xs font-semibold text-slate-700">Status *</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(val: any) => setFormData({ ...formData, status: val })}
+                    onValueChange={(val) => setFormData({ ...formData, status: val as Student['status'] })}
                   >
                     <SelectTrigger>
                       <SelectValue />
